@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>シフト申請</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+  <style>
+    body { padding: 15px; background: #f5f5f5; }
+    .shift-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .shift-table th, .shift-table td { text-align: center; padding: 8px 4px; border-bottom: 1px solid #eee; }
+    .shift-table th { background: #f0f0f0; font-weight: bold; }
+    .shift-table td:first-child { text-align: left; font-weight: bold; width: 50px; }
+    .week-selector { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
+    .week-selector button { border: none; background: #3273dc; color: white; border-radius: 50%; width: 30px; height: 30px; font-size: 16px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="card-content">
+      <h2 style="font-weight:bold;text-align:center;margin-bottom:20px">📅 シフト申請フォーム</h2>
+
+      <div class="field">
+        <label class="label">お名前</label>
+        <input class="input" type="text" id="userName" placeholder="例：山田太郎" required>
+      </div>
+
+      <div class="field">
+        <label class="label">対象週</label>
+        <div class="week-selector">
+          <button onclick="changeWeek(-1)">＜</button>
+          <span id="weekLabel" style="font-weight:bold;font-size:14px"></span>
+          <button onclick="changeWeek(1)">＞</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="label">シフト希望（複数選択可）</label>
+        <table class="shift-table">
+          <thead>
+            <tr>
+              <th>日付</th>
+              <th>早番</th>
+              <th>中番</th>
+              <th>遅番</th>
+              <th>休み</th>
+            </tr>
+          </thead>
+          <tbody id="shiftTableBody"></tbody>
+        </table>
+      </div>
+
+      <div class="field" style="margin-top:15px">
+        <label class="label">備考</label>
+        <textarea class="textarea" id="note" rows="2" placeholder="例：A現場希望"></textarea>
+      </div>
+
+      <button class="button is-success is-fullwidth is-large" style="margin-top:10px" onclick="sendShift()">
+        <strong>この内容で申請する</strong>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbwCfBE-qtwwgyGSk6vPEnWhMu1Y6i2GKvVZ8Xj-3jc3o0QlK_Or1_z7-rhcWkioAcFv_g/exec";
+    const SHIFTS = ['早番', '中番', '遅番', '休み'];
+    const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土'];
+
+    let weekStart;
+
+    function init() {
+      const now = new Date();
+      const day = now.getDay();
+      const diff = day === 0 ? -6 : 1 - day;
+      weekStart = new Date(now);
+      weekStart.setDate(now.getDate() + diff);
+      weekStart.setHours(0, 0, 0, 0);
+      renderTable();
+    }
+
+    function changeWeek(delta) {
+      weekStart.setDate(weekStart.getDate() + delta * 7);
+      renderTable();
+    }
+
+    function formatDate(date) {
+      return (date.getMonth() + 1) + '/' + date.getDate();
+    }
+
+    function renderTable() {
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate() + 6);
+      document.getElementById('weekLabel').innerText =
+        formatDate(weekStart) + '（月）〜' + formatDate(weekEnd) + '（日）';
+
+      const tbody = document.getElementById('shiftTableBody');
+      tbody.innerHTML = '';
+
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(weekStart);
+        date.setDate(weekStart.getDate() + i);
+        const dow = WEEKDAYS[date.getDay()];
+        const isHoliday = date.getDay() === 0;
+        const isSaturday = date.getDay() === 6;
+        const color = isHoliday ? 'color:red' : isSaturday ? 'color:blue' : '';
+        const key = formatDate(date);
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td style="${color}">${key}(${dow})</td>` +
+          SHIFTS.map(shift =>
+            `<td><input type="checkbox" name="day_${i}" value="${shift}"></td>`
+          ).join('');
+        tbody.appendChild(tr);
+      }
+    }
+
+    async function sendShift() {
+      const userName = document.getElementById('userName').value.trim();
+      if (!userName) { alert('お名前を入力してください'); return; }
+
+      const selections = [];
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(weekStart);
+        date.setDate(weekStart.getDate() + i);
+        const checked = [...document.querySelectorAll(`input[name="day_${i}"]:checked`)]
+          .map(cb => cb.value);
+        if (checked.length > 0) {
+          selections.push(`${formatDate(date)}：${checked.join('・')}`);
+        }
+      }
+
+      if (selections.length === 0) {
+        alert('少なくとも1日以上選択してください');
+        return;
+      }
+
+      const btn = document.querySelector('button.is-success');
+      btn.disabled = true;
+      btn.innerHTML = '<strong>送信中...</strong>';
+
+      try {
+        const res = await fetch(GAS_URL, {
+          method: 'POST',
+          body: JSON.stringify({
+            type: 'shiftDirect',
+            userId: '',
+            userName: userName,
+            date: document.getElementById('weekLabel').innerText,
+            start: selections.join('\n'),
+            end: '',
+            note: document.getElementById('note').value
+          })
+        });
+
+        if (res.ok) {
+          alert('申請が完了しました！\n' + selections.join('\n'));
+          document.getElementById('userName').value = '';
+          document.getElementById('note').value = '';
+          renderTable();
+        } else {
+          throw new Error('サーバーエラー: ' + res.status);
+        }
+      } catch(err) {
+        alert('エラーが発生しました: ' + err);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<strong>この内容で申請する</strong>';
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>
