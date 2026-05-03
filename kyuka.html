@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>有給申請</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+</head>
+<body style="padding:15px; background:#f5f5f5">
+  <div class="card">
+    <div class="card-content">
+      <h2 style="font-weight:bold;text-align:center;margin-bottom:20px">🌴 有給申請フォーム</h2>
+
+      <div class="field">
+        <label class="label">お名前</label>
+        <input class="input" type="text" id="userName" placeholder="例：山田太郎" required>
+      </div>
+
+      <div class="field">
+        <label class="label">申請日</label>
+        <input class="input" type="date" id="applyDate" required>
+      </div>
+
+      <div class="field">
+        <label class="label">種類</label>
+        <div class="select is-fullwidth">
+          <select id="kind">
+            <option value="全休">全休</option>
+            <option value="午前半休">午前半休</option>
+            <option value="午後半休">午後半休</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="label">理由</label>
+        <textarea class="textarea" id="reason" rows="3" placeholder="例：私用のため"></textarea>
+      </div>
+
+      <button class="button is-warning is-fullwidth is-large" style="margin-top:10px" onclick="sendKyuka()">
+        <strong>この内容で申請する</strong>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbwCfBE-qtwwgyGSk6vPEnWhMu1Y6i2GKvVZ8Xj-3jc3o0QlK_Or1_z7-rhcWkioAcFv_g/exec";
+
+    async function sendKyuka() {
+      const userName = document.getElementById('userName').value.trim();
+      const applyDate = document.getElementById('applyDate').value;
+      const kind = document.getElementById('kind').value;
+      const reason = document.getElementById('reason').value.trim();
+
+      if (!userName) { alert('お名前を入力してください'); return; }
+      if (!applyDate) { alert('申請日を選択してください'); return; }
+      if (!reason) { alert('理由を入力してください'); return; }
+
+      const btn = document.querySelector('button.is-warning');
+      btn.disabled = true;
+      btn.innerHTML = '<strong>送信中...</strong>';
+
+      try {
+        const res = await fetch(GAS_URL, {
+          method: 'POST',
+          body: JSON.stringify({
+            type: 'kyukaRequest',
+            userName: userName,
+            date: applyDate,
+            kind: kind,
+            reason: reason
+          })
+        });
+
+        if (res.ok) {
+          alert('申請が完了しました！\n名前：' + userName + '\n日付：' + applyDate + '\n種類：' + kind);
+          document.getElementById('userName').value = '';
+          document.getElementById('reason').value = '';
+        } else {
+          throw new Error('サーバーエラー: ' + res.status);
+        }
+      } catch(err) {
+        alert('エラーが発生しました: ' + err);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<strong>この内容で申請する</strong>';
+      }
+    }
+  </script>
+</body>
+</html>
