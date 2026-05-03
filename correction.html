@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>勤怠修正申請</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+</head>
+<body style="padding:15px; background:#f5f5f5">
+  <div class="card">
+    <div class="card-content">
+      <h2 style="font-weight:bold;text-align:center;margin-bottom:20px">📝 勤怠修正申請フォーム</h2>
+
+      <div class="field">
+        <label class="label">お名前</label>
+        <input class="input" type="text" id="userName" placeholder="例：山田太郎" required>
+      </div>
+
+      <div class="field">
+        <label class="label">勤務日</label>
+        <input class="input" type="date" id="workDate" required>
+      </div>
+
+      <div class="field">
+        <label class="label">修正種別</label>
+        <div class="select is-fullwidth">
+          <select id="correctionType" onchange="updateTimeField()">
+            <option value="出勤時間">出勤時間</option>
+            <option value="退勤時間">退勤時間</option>
+            <option value="勤務日">勤務日</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field" id="timeField">
+        <label class="label">修正後の時間</label>
+        <input class="input" type="time" id="correctionTime">
+      </div>
+
+      <div class="field" id="dateField" style="display:none">
+        <label class="label">修正後の勤務日</label>
+        <input class="input" type="date" id="correctionDate">
+      </div>
+
+      <div class="field">
+        <label class="label">修正前の時間・日付</label>
+        <input class="input" type="text" id="beforeValue" placeholder="例：9:00 または 2026/05/01">
+      </div>
+
+      <div class="field">
+        <label class="label">理由</label>
+        <textarea class="textarea" id="reason" rows="3" placeholder="例：打刻忘れのため"></textarea>
+      </div>
+
+      <button class="button is-warning is-fullwidth is-large" style="margin-top:10px" onclick="sendCorrection()">
+        <strong>この内容で申請する</strong>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbwCfBE-qtwwgyGSk6vPEnWhMu1Y6i2GKvVZ8Xj-3jc3o0QlK_Or1_z7-rhcWkioAcFv_g/exec";
+
+    function updateTimeField() {
+      const type = document.getElementById('correctionType').value;
+      if (type === '勤務日') {
+        document.getElementById('timeField').style.display = 'none';
+        document.getElementById('dateField').style.display = 'block';
+      } else {
+        document.getElementById('timeField').style.display = 'block';
+        document.getElementById('dateField').style.display = 'none';
+      }
+    }
+
+    async function sendCorrection() {
+      const userName = document.getElementById('userName').value.trim();
+      const workDate = document.getElementById('workDate').value;
+      const correctionType = document.getElementById('correctionType').value;
+      const beforeValue = document.getElementById('beforeValue').value.trim();
+      const reason = document.getElementById('reason').value.trim();
+
+      let afterValue = '';
+      if (correctionType === '勤務日') {
+        afterValue = document.getElementById('correctionDate').value;
+      } else {
+        afterValue = document.getElementById('correctionTime').value;
+      }
+
+      if (!userName) { alert('お名前を入力してください'); return; }
+      if (!workDate) { alert('勤務日を選択してください'); return; }
+      if (!afterValue) { alert('修正後の時間・日付を入力してください'); return; }
+      if (!beforeValue) { alert('修正前の時間・日付を入力してください'); return; }
+      if (!reason) { alert('理由を入力してください'); return; }
+
+      const btn = document.querySelector('button.is-warning');
+      btn.disabled = true;
+      btn.innerHTML = '<strong>送信中...</strong>';
+
+      try {
+        const res = await fetch(GAS_URL, {
+          method: 'POST',
+          body: JSON.stringify({
+            type: 'correctionRequest',
+            userName: userName,
+            workDate: workDate,
+            correctionType: correctionType,
+            beforeValue: beforeValue,
+            afterValue: afterValue,
+            reason: reason
+          })
+        });
+
+        if (res.ok) {
+          alert('申請が完了しました！\n管理者の承認後に修正されます。');
+          document.getElementById('userName').value = '';
+          document.getElementById('reason').value = '';
+          document.getElementById('beforeValue').value = '';
+        } else {
+          throw new Error('サーバーエラー: ' + res.status);
+        }
+      } catch(err) {
+        alert('エラーが発生しました: ' + err);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<strong>この内容で申請する</strong>';
+      }
+    }
+  </script>
+</body>
+</html>
