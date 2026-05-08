@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>シフトカレンダー</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+  <style>
+    body { padding: 15px; background: #f5f5f5; }
+    .wrap { max-width: 680px; margin: 0 auto; }
+    .name-row { display: flex; gap: 8px; align-items: center; margin-bottom: 1.2rem; }
+    .view-toggle { display: flex; gap: 6px; margin-bottom: 1.2rem; }
+    .view-btn { border: 1px solid #ddd; background: white; border-radius: 6px; padding: 6px 16px; font-size: 14px; cursor: pointer; }
+    .view-btn.active { background: #3273dc; color: white; border-color: #3273dc; }
+    .legend { display: flex; gap: 12px; margin-bottom: 1rem; flex-wrap: wrap; }
+    .legend-item { display: flex; align-items: center; gap: 4px; font-size: 12px; color: #666; }
+    .legend-dot { width: 10px; height: 10px; border-radius: 3px; }
+    .cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+    .cal-title { font-size: 16px; font-weight: bold; }
+    .nav-btn { border: 1px solid #ddd; background: white; border-radius: 50%; width: 32px; height: 32px; font-size: 16px; cursor: pointer; }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+    .cal-dow { text-align: center; font-size: 11px; color: #888; padding: 4px 0; font-weight: bold; }
+    .cal-dow.sun { color: #E24B4A; }
+    .cal-dow.sat { color: #378ADD; }
+    .cal-day { min-height: 76px; border: 1px solid #eee; border-radius: 8px; padding: 5px 4px; background: white; }
+    .cal-day.other-month { background: #f9f9f9; opacity: 0.5; }
+    .cal-day.today { border: 2px solid #3273dc; }
+    .cal-day.has-shift { cursor: pointer; }
+    .cal-day.has-shift:hover { border-color: #aaa; background: #f5f5f5; }
+    .cal-date { font-size: 11px; color: #888; margin-bottom: 3px; }
+    .cal-date.sun { color: #E24B4A; }
+    .cal-date.sat { color: #378ADD; }
+    .shift-badge { font-size: 15px; font-weight: bold; border-radius: 3px; padding: 3px 4px; display: block; text-align: center; }
+    .s-hayaban { background: #E6F1FB; color: #0C447C; }
+    .s-nakaban { background: #EAF3DE; color: #27500A; }
+    .s-ossoban { background: #FAEEDA; color: #633806; }
+    .s-yasumi { background: #F1EFE8; color: #444441; }
+    .week-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+    .day-card { border: 1px solid #eee; border-radius: 8px; padding: 8px 6px; background: white; min-height: 100px; }
+    .day-card.today { border: 2px solid #3273dc; }
+    .day-card.has-shift { cursor: pointer; }
+    .day-card.has-shift:hover { border-color: #aaa; background: #f5f5f5; }
+    .day-name { font-size: 11px; color: #888; text-align: center; margin-bottom: 2px; }
+    .day-name.sun { color: #E24B4A; }
+    .day-name.sat { color: #378ADD; }
+    .day-num { font-size: 15px; font-weight: bold; text-align: center; margin-bottom: 6px; }
+    .day-num.sun { color: #E24B4A; }
+    .day-num.sat { color: #378ADD; }
+    .today-circle { background: #3273dc; color: white; border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; margin: 0 auto 6px; font-size: 13px; font-weight: bold; }
+    .shift-block { border-radius: 4px; padding: 5px 4px; font-size: 14px; font-weight: bold; text-align: center; }
+    .no-shift { font-size: 11px; color: #bbb; text-align: center; margin-top: 6px; }
+    .loading { text-align: center; padding: 2rem; color: #888; }
+    .detail-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 100; }
+    .detail-card { background: white; border-radius: 12px; padding: 1.5rem; width: 280px; }
+    .detail-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+    .detail-title { font-size: 16px; font-weight: bold; }
+    .detail-close { background: none; border: none; cursor: pointer; font-size: 20px; color: #888; }
+    .detail-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #eee; }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-label { font-size: 13px; color: #888; width: 80px; }
+    .detail-value { font-size: 14px; font-weight: bold; }
+    .detail-badge { font-size: 13px; font-weight: bold; border-radius: 4px; padding: 3px 8px; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h2 style="font-weight:bold;text-align:center;margin-bottom:20px">📅 シフトカレンダー</h2>
+
+  <div class="name-row">
+    <input class="input" type="text" id="nameInput" placeholder="名前を入力してください" style="max-width:240px;" oninput="onNameInput()">
+    <button class="button is-info is-small" onclick="loadShifts()">検索</button>
+  </div>
+
+  <div class="view-toggle">
+    <button class="view-btn active" id="btnMonth" onclick="setView('month')">月表示</button>
+    <button class="view-btn" id="btnWeek" onclick="setView('week')">週表示</button>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#E6F1FB;border:1px solid #378ADD"></div>9:00〜17:00</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#EAF3DE;border:1px solid #639922"></div>12:00〜20:00</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#FAEEDA;border:1px solid #BA7517"></div>15:00〜23:00</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#F1EFE8;border:1px solid #888780"></div>休み</div>
+  </div>
+
+  <div class="cal-header">
+    <button class="nav-btn" onclick="changePeriod(-1)">＜</button>
+    <div class="cal-title" id="calTitle"></div>
+    <button class="nav-btn" onclick="changePeriod(1)">＞</button>
+  </div>
+
+  <div id="calDow" class="cal-grid">
+    <div class="cal-dow sun">日</div>
+    <div class="cal-dow">月</div>
+    <div class="cal-dow">火</div>
+    <div class="cal-dow">水</div>
+    <div class="cal-dow">木</div>
+    <div class="cal-dow">金</div>
+    <div class="cal-dow sat">土</div>
+  </div>
+
+  <div id="mainGrid"></div>
+  <div id="loadingMsg" class="loading" style="display:none">読み込み中...</div>
+</div>
+
+<div id="detailOverlay" class="detail-overlay" style="display:none;" onclick="closeDetail(event)">
+  <div class="detail-card" onclick="event.stopPropagation()">
+    <div class="detail-header">
+      <div class="detail-title">シフト詳細</div>
+      <button class="detail-close" onclick="closeDetail()">✕</button>
+    </div>
+    <div class="detail-row">
+      <div class="detail-label">勤務日</div>
+      <div class="detail-value" id="detailDate"></div>
+    </div>
+    <div class="detail-row">
+      <div class="detail-label">シフト</div>
+      <div id="detailShift"></div>
+    </div>
+    <div class="detail-row">
+      <div class="detail-label">勤務時間</div>
+      <div class="detail-value" id="detailTime"></div>
+    </div>
+    <div class="detail-row">
+      <div class="detail-label">担当者</div>
+      <div class="detail-value" id="detailName"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const GAS_URL = "https://script.google.com/macros/s/AKfycbwCfBE-qtwwgyGSk6vPEnWhMu1Y6i2GKvVZ8Xj-3jc3o0QlK_Or1_z7-rhcWkioAcFv_g/exec";
+
+const SHIFT_INFO = {
+  '早番': { cls: 's-hayaban', label: '9:00〜17:00', hours: '8時間' },
+  '中番': { cls: 's-nakaban', label: '12:00〜20:00', hours: '8時間' },
+  '遅番': { cls: 's-ossoban', label: '15:00〜23:00', hours: '8時間' },
+  '休み': { cls: 's-yasumi', label: '休み', hours: '-' }
+};
+
+const DOWS = ['日','月','火','水','木','金','土'];
+const MONTHS = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+
+let view = 'month';
+let currentYear = new Date().getFullYear();
+let currentMonth = new Date().getMonth();
+let weekStart = getMonday(new Date());
+let shiftData = {};
+let currentName = '';
+let inputTimer = null;
+
+function getMonday(date) {
+  const d = new Date(date);
+  const day = d.getDay();
+  d.setDate(d.getDate() + (day === 0 ? -6 : 1 - day));
+  d.setHours(0,0,0,0);
+  return d;
+}
+
+function pad(n) { return String(n).padStart(2,'0'); }
+function dateKey(d) { return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
+
+function onNameInput() {
+  clearTimeout(inputTimer);
+  inputTimer = setTimeout(loadShifts, 800);
+}
+
+async function loadShifts() {
+  const name = document.getElementById('nameInput').value.trim();
+  if (!name) { shiftData = {}; render(); return; }
+  if (name === currentName) return;
+  currentName = name;
+
+  document.getElementById('loadingMsg').style.display = 'block';
+  document.getElementById('mainGrid').style.display = 'none';
+
+  try {
+    const res = await fetch(`${GAS_URL}?page=api&name=${encodeURIComponent(name)}`);
+    const data = await res.json();
+    shiftData = {};
+    for (const item of data) {
+      shiftData[item.date] = item.shift;
+    }
+  } catch(err) {
+    console.error(err);
+  } finally {
+    document.getElementById('loadingMsg').style.display = 'none';
+    document.getElementById('mainGrid').style.display = '';
+    render();
+  }
+}
+
+function setView(v) {
+  view = v;
+  document.getElementById('btnMonth').className = 'view-btn' + (v === 'month' ? ' active' : '');
+  document.getElementById('btnWeek').className = 'view-btn' + (v === 'week' ? ' active' : '');
+  document.getElementById('calDow').style.display = v === 'month' ? 'grid' : 'none';
+  render();
+}
+
+function changePeriod(delta) {
+  if (view === 'month') {
+    currentMonth += delta;
+    if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+    if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+  } else {
+    weekStart.setDate(weekStart.getDate() + delta * 7);
+  }
+  render();
+}
+
+function render() {
+  view === 'month' ? renderMonth() : renderWeek();
+}
+
+function openDetail(key, shift, name) {
+  if (!shift) return;
+  const info = SHIFT_INFO[shift];
+  if (!info) return;
+  const date = new Date(key);
+  const dow = DOWS[date.getDay()];
+  document.getElementById('detailDate').textContent = `${date.getFullYear()}年${date.getMonth()+1}月${date.getDate()}日（${dow}）`;
+  document.getElementById('detailShift').innerHTML = `<span class="detail-badge ${info.cls}">${info.label}</span>`;
+  document.getElementById('detailTime').textContent = info.hours;
+  document.getElementById('detailName').textContent = name || '未入力';
+  document.getElementById('detailOverlay').style.display = 'flex';
+}
+
+function closeDetail(event) {
+  if (!event || event.target === document.getElementById('detailOverlay')) {
+    document.getElementById('detailOverlay').style.display = 'none';
+  }
+}
+
+function renderMonth() {
+  document.getElementById('calTitle').textContent = `${currentYear}年${MONTHS[currentMonth]}`;
+  const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+  const daysInPrev = new Date(currentYear, currentMonth, 0).getDate();
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  const grid = document.getElementById('mainGrid');
+  grid.className = 'cal-grid';
+  grid.innerHTML = '';
+
+  for (let i = 0; i < firstDay; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'cal-day other-month';
+    cell.innerHTML = `<div class="cal-date">${daysInPrev - firstDay + i + 1}</div>`;
+    grid.appendChild(cell);
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const date = new Date(currentYear, currentMonth, d);
+    const dow = date.getDay();
+    const key = dateKey(date);
+    const isToday = date.getTime() === today.getTime();
+    const shift = shiftData[key];
+    const info = shift ? SHIFT_INFO[shift] : null;
+
+    const cell = document.createElement('div');
+    cell.className = 'cal-day' + (isToday ? ' today' : '') + (info ? ' has-shift' : '');
+    if (info) cell.onclick = () => openDetail(key, shift, currentName);
+
+    const dateClass = dow === 0 ? 'cal-date sun' : dow === 6 ? 'cal-date sat' : 'cal-date';
+    let html = `<div class="${dateClass}">${d}</div>`;
+    if (info) html += `<span class="shift-badge ${info.cls}">${info.label}</span>`;
+    cell.innerHTML = html;
+    grid.appendChild(cell);
+  }
+
+  const remaining = 42 - firstDay - daysInMonth;
+  for (let d = 1; d <= remaining; d++) {
+    const cell = document.createElement('div');
+    cell.className = 'cal-day other-month';
+    cell.innerHTML = `<div class="cal-date">${d}</div>`;
+    grid.appendChild(cell);
+  }
+}
+
+function renderWeek() {
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekStart.getDate() + 6);
+  const fmt = d => `${d.getMonth()+1}/${d.getDate()}`;
+  document.getElementById('calTitle').textContent = `${fmt(weekStart)}（月）〜${fmt(weekEnd)}（日）`;
+
+  const today = new Date(); today.setHours(0,0,0,0);
+  const grid = document.getElementById('mainGrid');
+  grid.className = 'week-grid';
+  grid.innerHTML = '';
+
+  for (let i = 0; i < 7; i++) {
+    const date = new Date(weekStart);
+    date.setDate(weekStart.getDate() + i);
+    const dow = date.getDay();
+    const key = dateKey(date);
+    const isToday = date.getTime() === today.getTime();
+    const shift = shiftData[key];
+    const info = shift ? SHIFT_INFO[shift] : null;
+
+    const card = document.createElement('div');
+    card.className = 'day-card' + (isToday ? ' today' : '') + (info ? ' has-shift' : '');
+    if (info) card.onclick = () => openDetail(key, shift, currentName);
+
+    const nameClass = dow === 0 ? 'day-name sun' : dow === 6 ? 'day-name sat' : 'day-name';
+    const numClass = dow === 0 ? 'day-num sun' : dow === 6 ? 'day-num sat' : 'day-num';
+
+    let html = `<div class="${nameClass}">${DOWS[dow]}</div>`;
+    html += isToday
+      ? `<div class="today-circle">${date.getDate()}</div>`
+      : `<div class="${numClass}">${date.getDate()}</div>`;
+
+    if (info) {
+      html += `<div class="shift-block ${info.cls}">${info.label}</div>`;
+    } else if (currentName) {
+      html += `<div class="no-shift">-</div>`;
+    }
+
+    card.innerHTML = html;
+    grid.appendChild(card);
+  }
+}
+
+render();
+</script>
+</body>
+</html>
