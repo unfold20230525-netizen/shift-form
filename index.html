@@ -7,12 +7,27 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
   <style>
     body { padding: 15px; background: #f5f5f5; }
-    .shift-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    .shift-table th, .shift-table td { text-align: center; padding: 8px 4px; border-bottom: 1px solid #eee; }
-    .shift-table th { background: #f0f0f0; font-weight: bold; line-height: 1.4; }
-    .shift-table td:first-child { text-align: left; font-weight: bold; width: 60px; }
+    .card { border-radius: 12px; }
     .week-selector { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
     .week-selector button { border: none; background: #3273dc; color: white; border-radius: 50%; width: 30px; height: 30px; font-size: 16px; cursor: pointer; }
+    .bulk-section { background: #f0f7ff; border-radius: 8px; padding: 12px; margin-bottom: 1rem; }
+    .bulk-title { font-size: 13px; font-weight: bold; color: #0C447C; margin-bottom: 10px; }
+    .bulk-row { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
+    .apply-btn { border: none; color: white; border-radius: 6px; padding: 6px 12px; font-size: 13px; cursor: pointer; }
+    .day-row { display: grid; grid-template-columns: 75px 1fr 1fr 80px; gap: 6px; align-items: end; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
+    .day-row:last-child { border-bottom: none; }
+    .day-label { font-size: 12px; font-weight: bold; padding-bottom: 6px; }
+    .day-label.sat { color: #378ADD; }
+    .day-label.sun { color: #E24B4A; }
+    .time-wrap { display: flex; flex-direction: column; }
+    .time-label { font-size: 10px; color: #888; margin-bottom: 2px; }
+    .time-input { border: 1px solid #ddd; border-radius: 6px; padding: 6px 4px; font-size: 12px; width: 100%; box-sizing: border-box; }
+    .time-input:disabled { background: #f5f5f5; color: #bbb; }
+    .holiday-select { border: 1px solid #ddd; border-radius: 6px; padding: 6px 4px; font-size: 12px; width: 100%; box-sizing: border-box; }
+    .holiday-select.selected { background: #FFF3CD; border-color: #FFC107; color: #856404; font-weight: bold; }
+    .template-custom { display: none; align-items: center; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+    .template-custom.show { display: flex; }
+    .time-small { border: 1px solid #ddd; border-radius: 6px; padding: 6px; font-size: 13px; width: 90px; }
   </style>
 </head>
 <body>
@@ -34,28 +49,42 @@
         </div>
       </div>
 
+      <div class="bulk-section">
+        <div class="bulk-title">⚡ 一括入力</div>
+        <div class="bulk-row">
+          <select class="input" id="templateSelect" style="max-width:200px" onchange="onTemplateChange()">
+            <option value="">テンプレートを選択</option>
+            <option value="0900-1700">9:00〜17:00</option>
+            <option value="1200-2000">12:00〜20:00</option>
+            <option value="1500-2300">15:00〜23:00</option>
+            <option value="custom">時間設定</option>
+            <option value="holiday">休み</option>
+          </select>
+        </div>
+        <div class="template-custom" id="customTimeRow">
+          <input type="time" class="time-small" id="customStart" value="09:00">
+          <span style="font-size:12px;color:#888">〜</span>
+          <input type="time" class="time-small" id="customEnd" value="17:00">
+        </div>
+        <div class="bulk-row" style="margin-top:8px">
+          <button class="apply-btn" style="background:#3273dc" onclick="applyBulk('all')">全日に適用</button>
+          <button class="apply-btn" style="background:#639922" onclick="applyBulk('weekday')">平日のみ</button>
+          <button class="apply-btn" style="background:#BA7517" onclick="applyBulk('weekend')">土日のみ</button>
+        </div>
+      </div>
+
       <div class="field">
-        <label class="label">シフト希望（複数選択可）</label>
-        <table class="shift-table">
-          <thead>
-            <tr>
-              <th>日付</th>
-              <th>早番<br>9:00〜17:00</th>
-              <th>中番<br>12:00〜20:00</th>
-              <th>遅番<br>15:00〜23:00</th>
-              <th>休み</th>
-            </tr>
-          </thead>
-          <tbody id="shiftTableBody"></tbody>
-        </table>
+        <label class="label">勤務時間入力</label>
+        <p style="font-size:11px;color:#aaa;margin-bottom:8px">※個別に変更したい日は直接入力してください</p>
+        <div id="dayRows"></div>
       </div>
 
-      <div class="field" style="margin-top:15px">
+      <div class="field">
         <label class="label">備考</label>
-        <textarea class="textarea" id="note" rows="2" placeholder="例：A現場希望"></textarea>
+        <textarea class="textarea" id="note" rows="2"></textarea>
       </div>
 
-      <button class="button is-success is-fullwidth is-large" style="margin-top:10px" onclick="sendShift()">
+      <button class="button is-success is-fullwidth is-large" onclick="sendShift()">
         <strong>この内容で申請する</strong>
       </button>
     </div>
@@ -63,54 +92,134 @@
 
   <script>
     const GAS_URL = "https://script.google.com/macros/s/AKfycbwCfBE-qtwwgyGSk6vPEnWhMu1Y6i2GKvVZ8Xj-3jc3o0QlK_Or1_z7-rhcWkioAcFv_g/exec";
-    const SHIFTS = ['早番', '中番', '遅番', '休み'];
-    const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土'];
+    const WEEKDAYS = ['日','月','火','水','木','金','土'];
+    let weekStart = getMonday(new Date());
 
-    let weekStart;
+    function getMonday(date) {
+      const d = new Date(date);
+      const day = d.getDay();
+      d.setDate(d.getDate() + (day === 0 ? -6 : 1 - day));
+      d.setHours(0,0,0,0);
+      return d;
+    }
 
-    function init() {
-      const now = new Date();
-      const day = now.getDay();
-      const diff = day === 0 ? -6 : 1 - day;
-      weekStart = new Date(now);
-      weekStart.setDate(now.getDate() + diff);
-      weekStart.setHours(0, 0, 0, 0);
-      renderTable();
+    function formatDate(date) {
+      return (date.getMonth()+1) + '/' + date.getDate();
+    }
+
+    function formatDateFull(date) {
+      return date.getFullYear() + '/' + String(date.getMonth()+1).padStart(2,'0') + '/' + String(date.getDate()).padStart(2,'0');
     }
 
     function changeWeek(delta) {
       weekStart.setDate(weekStart.getDate() + delta * 7);
-      renderTable();
+      renderRows();
     }
 
-    function formatDate(date) {
-      return (date.getMonth() + 1) + '/' + date.getDate();
+    function onTemplateChange() {
+      const val = document.getElementById('templateSelect').value;
+      document.getElementById('customTimeRow').className =
+        val === 'custom' ? 'template-custom show' : 'template-custom';
     }
 
-    function renderTable() {
-      const weekEnd = new Date(weekStart);
-      weekEnd.setDate(weekStart.getDate() + 6);
-      document.getElementById('weekLabel').innerText =
-        formatDate(weekStart) + '（月）〜' + formatDate(weekEnd) + '（日）';
+    function applyBulk(target) {
+      const template = document.getElementById('templateSelect').value;
+      if (!template) { alert('テンプレートを選択してください'); return; }
 
-      const tbody = document.getElementById('shiftTableBody');
-      tbody.innerHTML = '';
+      let startVal = '', endVal = '';
+      const isHoliday = template === 'holiday';
+
+      if (!isHoliday) {
+        if (template === 'custom') {
+          startVal = document.getElementById('customStart').value;
+          endVal = document.getElementById('customEnd').value;
+          if (!startVal || !endVal) { alert('時間を入力してください'); return; }
+        } else {
+          const parts = template.split('-');
+          startVal = parts[0].slice(0,2) + ':' + parts[0].slice(2);
+          endVal = parts[1].slice(0,2) + ':' + parts[1].slice(2);
+        }
+      }
 
       for (let i = 0; i < 7; i++) {
         const date = new Date(weekStart);
         date.setDate(weekStart.getDate() + i);
-        const dow = WEEKDAYS[date.getDay()];
-        const isHoliday = date.getDay() === 0;
-        const isSaturday = date.getDay() === 6;
-        const color = isHoliday ? 'color:red' : isSaturday ? 'color:blue' : '';
-        const key = formatDate(date);
+        const dow = date.getDay();
+        const shouldApply =
+          target === 'all' ||
+          (target === 'weekday' && dow !== 0 && dow !== 6) ||
+          (target === 'weekend' && (dow === 0 || dow === 6));
+        if (!shouldApply) continue;
 
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td style="${color}">${key}(${dow})</td>` +
-          SHIFTS.map(shift =>
-            `<td><input type="checkbox" name="day_${i}" value="${shift}"></td>`
-          ).join('');
-        tbody.appendChild(tr);
+        const startInput = document.getElementById('start_' + i);
+        const endInput = document.getElementById('end_' + i);
+        const holidaySelect = document.getElementById('holiday_' + i);
+
+        if (isHoliday) {
+          holidaySelect.value = '休み';
+          holidaySelect.className = 'holiday-select selected';
+          startInput.value = ''; endInput.value = '';
+          startInput.disabled = true; endInput.disabled = true;
+        } else {
+          holidaySelect.value = '';
+          holidaySelect.className = 'holiday-select';
+          startInput.disabled = false; endInput.disabled = false;
+          startInput.value = startVal; endInput.value = endVal;
+        }
+      }
+    }
+
+    function onHolidayChange(i) {
+      const select = document.getElementById('holiday_' + i);
+      const startInput = document.getElementById('start_' + i);
+      const endInput = document.getElementById('end_' + i);
+      const isHoliday = select.value === '休み';
+      if (isHoliday) {
+        startInput.value = ''; endInput.value = '';
+        startInput.disabled = true; endInput.disabled = true;
+        select.className = 'holiday-select selected';
+      } else {
+        startInput.disabled = false; endInput.disabled = false;
+        select.className = 'holiday-select';
+      }
+    }
+
+    function renderRows() {
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate() + 6);
+      document.getElementById('weekLabel').textContent =
+        formatDate(weekStart) + '（月）〜' + formatDate(weekEnd) + '（日）';
+
+      const container = document.getElementById('dayRows');
+      container.innerHTML = '';
+
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(weekStart);
+        date.setDate(weekStart.getDate() + i);
+        const dow = date.getDay();
+        const labelClass = dow === 0 ? 'day-label sun' : dow === 6 ? 'day-label sat' : 'day-label';
+
+        const row = document.createElement('div');
+        row.className = 'day-row';
+        row.innerHTML = `
+          <div class="${labelClass}">${formatDate(date)}<br>（${WEEKDAYS[dow]}）</div>
+          <div class="time-wrap">
+            <div class="time-label">開始</div>
+            <input class="time-input" type="time" id="start_${i}">
+          </div>
+          <div class="time-wrap">
+            <div class="time-label">終了</div>
+            <input class="time-input" type="time" id="end_${i}">
+          </div>
+          <div class="time-wrap">
+            <div class="time-label">状態</div>
+            <select class="holiday-select" id="holiday_${i}" onchange="onHolidayChange(${i})">
+              <option value="">-</option>
+              <option value="休み">休み</option>
+            </select>
+          </div>
+        `;
+        container.appendChild(row);
       }
     }
 
@@ -118,19 +227,23 @@
       const userName = document.getElementById('userName').value.trim();
       if (!userName) { alert('お名前を入力してください'); return; }
 
-      const selections = [];
+      const entries = [];
       for (let i = 0; i < 7; i++) {
         const date = new Date(weekStart);
         date.setDate(weekStart.getDate() + i);
-        const checked = [...document.querySelectorAll(`input[name="day_${i}"]:checked`)]
-          .map(cb => cb.value);
-        if (checked.length > 0) {
-          selections.push(`${formatDate(date)}：${checked.join('・')}`);
+        const start = document.getElementById('start_' + i).value;
+        const end = document.getElementById('end_' + i).value;
+        const holiday = document.getElementById('holiday_' + i).value;
+
+        if (holiday === '休み') {
+          entries.push({ date: formatDateFull(date), shift: '休み' });
+        } else if (start && end) {
+          entries.push({ date: formatDateFull(date), shift: start + '〜' + end });
         }
       }
 
-      if (selections.length === 0) {
-        alert('少なくとも1日以上選択してください');
+      if (entries.length === 0) {
+        alert('少なくとも1日以上入力してください');
         return;
       }
 
@@ -142,21 +255,18 @@
         const res = await fetch(GAS_URL, {
           method: 'POST',
           body: JSON.stringify({
-            type: 'shiftDirect',
-            userId: '',
+            type: 'shiftNew',
             userName: userName,
-            date: document.getElementById('weekLabel').innerText,
-            start: selections.join('\n'),
-            end: '',
+            entries: entries,
             note: document.getElementById('note').value
           })
         });
 
         if (res.ok) {
-          alert('申請が完了しました！\n' + selections.join('\n'));
+          alert('申請が完了しました！');
           document.getElementById('userName').value = '';
           document.getElementById('note').value = '';
-          renderTable();
+          renderRows();
         } else {
           throw new Error('サーバーエラー: ' + res.status);
         }
@@ -168,7 +278,7 @@
       }
     }
 
-    init();
+    renderRows();
   </script>
 </body>
 </html>
