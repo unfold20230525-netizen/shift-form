@@ -15,17 +15,18 @@
 
   <!-- 認証画面 -->
   <div id="authScreen" class="auth-screen">
-    <div class="auth-card">
-      <div style="font-size:40px;margin-bottom:1rem">🔐</div>
-      <h2 style="font-weight:bold;margin-bottom:0.5rem">スタッフ認証</h2>
-      <p style="color:#888;font-size:13px;margin-bottom:1.5rem">登録済みのお名前を入力してください</p>
-      <input class="input" type="text" id="authName" placeholder="例：山田太郎" style="margin-bottom:1rem">
-      <div id="authError" style="color:red;font-size:13px;margin-bottom:0.5rem;display:none">
-        登録されていません。先にスタッフ登録を行ってください。
-      </div>
-      <button class="button is-info is-fullwidth" onclick="checkAuth()">確認する</button>
+  <div class="auth-card">
+    <div style="font-size:40px;margin-bottom:1rem">🔐</div>
+    <h2 style="font-weight:bold;margin-bottom:0.5rem">スタッフ認証</h2>
+    <p style="color:#888;font-size:13px;margin-bottom:1.5rem">お名前と電話番号を入力してください</p>
+    <input class="input" type="text" id="authName" placeholder="例：山田太郎" style="margin-bottom:0.75rem">
+    <input class="input" type="tel" id="authTel" placeholder="例：09012345678" style="margin-bottom:1rem">
+    <div id="authError" style="color:red;font-size:13px;margin-bottom:0.5rem;display:none">
+      名前または電話番号が一致しません。
     </div>
+    <button class="button is-info is-fullwidth" onclick="checkAuth()">確認する</button>
   </div>
+</div>
 
   <!-- メインコンテンツ（認証後に表示） -->
   <div id="mainContent" style="display:none">
@@ -70,32 +71,40 @@
     const GAS_URL = "https://script.google.com/macros/s/AKfycbwCfBE-qtwwgyGSk6vPEnWhMu1Y6i2GKvVZ8Xj-3jc3o0QlK_Or1_z7-rhcWkioAcFv_g/exec";
 
     async function checkAuth() {
-      const name = document.getElementById('authName').value.trim();
-      if (!name) { alert('お名前を入力してください'); return; }
+  const name = document.getElementById('authName').value.trim();
+  const tel = document.getElementById('authTel').value.trim();
+  if (!name) { alert('お名前を入力してください'); return; }
+  if (!tel) { alert('電話番号を入力してください'); return; }
 
-      const btn = document.querySelector('#authScreen button');
-      btn.disabled = true;
-      btn.textContent = '確認中...';
+  const btn = document.querySelector('#authScreen button');
+  btn.disabled = true;
+  btn.textContent = '確認中...';
 
-      try {
-        const res = await fetch(`${GAS_URL}?page=auth&name=${encodeURIComponent(name)}`);
-        const data = await res.json();
+  try {
+    const res = await fetch(`${GAS_URL}?page=auth&name=${encodeURIComponent(name)}&tel=${encodeURIComponent(tel)}`);
+    const data = await res.json();
 
-        if (data.auth) {
-          document.getElementById('authScreen').style.display = 'none';
-          document.getElementById('mainContent').style.display = 'block';
-          document.getElementById('userName').value = name;
-        } else {
-          document.getElementById('authError').style.display = 'block';
-          btn.disabled = false;
-          btn.textContent = '確認する';
-        }
-      } catch(err) {
-        alert('エラーが発生しました: ' + err);
-        btn.disabled = false;
-        btn.textContent = '確認する';
+    if (data.auth) {
+      document.getElementById('authScreen').style.display = 'none';
+      document.getElementById('mainContent').style.display = 'block';
+      document.getElementById('userName').value = name;
+      // calendar.htmlのみ以下も実行
+      if (typeof loadShifts === 'function') {
+        currentName = name;
+        await loadShifts();
+        render();
       }
+    } else {
+      document.getElementById('authError').style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = '確認する';
     }
+  } catch(err) {
+    alert('エラーが発生しました: ' + err);
+    btn.disabled = false;
+    btn.textContent = '確認する';
+  }
+}
 
     async function sendKyuka() {
       const userName = document.getElementById('userName').value.trim();
