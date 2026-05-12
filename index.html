@@ -28,65 +28,85 @@
     .template-custom { display: none; align-items: center; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
     .template-custom.show { display: flex; }
     .time-small { border: 1px solid #ddd; border-radius: 6px; padding: 6px; font-size: 13px; width: 90px; }
+    .auth-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+    .auth-card { background: white; border-radius: 12px; padding: 2rem; width: 100%; max-width: 400px; text-align: center; }
   </style>
 </head>
 <body>
-  <div class="card">
-    <div class="card-content">
-      <h2 style="font-weight:bold;text-align:center;margin-bottom:20px">📅 シフト申請フォーム</h2>
 
-      <div class="field">
-        <label class="label">お名前</label>
-        <input class="input" type="text" id="userName" placeholder="例：山田太郎" required>
+  <!-- 認証画面 -->
+  <div id="authScreen" class="auth-screen">
+    <div class="auth-card">
+      <div style="font-size:40px;margin-bottom:1rem">🔐</div>
+      <h2 style="font-weight:bold;margin-bottom:0.5rem">スタッフ認証</h2>
+      <p style="color:#888;font-size:13px;margin-bottom:1.5rem">登録済みのお名前を入力してください</p>
+      <input class="input" type="text" id="authName" placeholder="例：山田太郎" style="margin-bottom:1rem">
+      <div id="authError" style="color:red;font-size:13px;margin-bottom:0.5rem;display:none">
+        登録されていません。先にスタッフ登録を行ってください。
       </div>
+      <button class="button is-info is-fullwidth" onclick="checkAuth()">確認する</button>
+    </div>
+  </div>
 
-      <div class="field">
-        <label class="label">対象週</label>
-        <div class="week-selector">
-          <button onclick="changeWeek(-1)">＜</button>
-          <span id="weekLabel" style="font-weight:bold;font-size:14px"></span>
-          <button onclick="changeWeek(1)">＞</button>
+  <!-- メインコンテンツ（認証後に表示） -->
+  <div id="mainContent" style="display:none">
+    <div class="card">
+      <div class="card-content">
+        <h2 style="font-weight:bold;text-align:center;margin-bottom:20px">📅 シフト申請フォーム</h2>
+
+        <div class="field">
+          <label class="label">お名前</label>
+          <input class="input" type="text" id="userName" readonly style="background:#f5f5f5">
         </div>
-      </div>
 
-      <div class="bulk-section">
-        <div class="bulk-title">⚡ 一括入力</div>
-        <div class="bulk-row">
-          <select class="input" id="templateSelect" style="max-width:200px" onchange="onTemplateChange()">
-            <option value="">テンプレートを選択</option>
-            <option value="0900-1700">9:00〜17:00</option>
-            <option value="1200-2000">12:00〜20:00</option>
-            <option value="1500-2300">15:00〜23:00</option>
-            <option value="custom">時間設定</option>
-            <option value="holiday">休み</option>
-          </select>
+        <div class="field">
+          <label class="label">対象週</label>
+          <div class="week-selector">
+            <button onclick="changeWeek(-1)">＜</button>
+            <span id="weekLabel" style="font-weight:bold;font-size:14px"></span>
+            <button onclick="changeWeek(1)">＞</button>
+          </div>
         </div>
-        <div class="template-custom" id="customTimeRow">
-          <input type="time" class="time-small" id="customStart" value="09:00">
-          <span style="font-size:12px;color:#888">〜</span>
-          <input type="time" class="time-small" id="customEnd" value="17:00">
+
+        <div class="bulk-section">
+          <div class="bulk-title">⚡ 一括入力</div>
+          <div class="bulk-row">
+            <select class="input" id="templateSelect" style="max-width:200px" onchange="onTemplateChange()">
+              <option value="">テンプレートを選択</option>
+              <option value="0900-1700">9:00〜17:00</option>
+              <option value="1200-2000">12:00〜20:00</option>
+              <option value="1500-2300">15:00〜23:00</option>
+              <option value="custom">時間設定</option>
+              <option value="holiday">休み</option>
+            </select>
+          </div>
+          <div class="template-custom" id="customTimeRow">
+            <input type="time" class="time-small" id="customStart" value="09:00">
+            <span style="font-size:12px;color:#888">〜</span>
+            <input type="time" class="time-small" id="customEnd" value="17:00">
+          </div>
+          <div class="bulk-row" style="margin-top:8px">
+            <button class="apply-btn" style="background:#3273dc" onclick="applyBulk('all')">全日に適用</button>
+            <button class="apply-btn" style="background:#639922" onclick="applyBulk('weekday')">平日のみ</button>
+            <button class="apply-btn" style="background:#BA7517" onclick="applyBulk('weekend')">土日のみ</button>
+          </div>
         </div>
-        <div class="bulk-row" style="margin-top:8px">
-          <button class="apply-btn" style="background:#3273dc" onclick="applyBulk('all')">全日に適用</button>
-          <button class="apply-btn" style="background:#639922" onclick="applyBulk('weekday')">平日のみ</button>
-          <button class="apply-btn" style="background:#BA7517" onclick="applyBulk('weekend')">土日のみ</button>
+
+        <div class="field">
+          <label class="label">勤務時間入力</label>
+          <p style="font-size:11px;color:#aaa;margin-bottom:8px">※個別に変更したい日は直接入力してください</p>
+          <div id="dayRows"></div>
         </div>
-      </div>
 
-      <div class="field">
-        <label class="label">勤務時間入力</label>
-        <p style="font-size:11px;color:#aaa;margin-bottom:8px">※個別に変更したい日は直接入力してください</p>
-        <div id="dayRows"></div>
-      </div>
+        <div class="field">
+          <label class="label">備考</label>
+          <textarea class="textarea" id="note" rows="2"></textarea>
+        </div>
 
-      <div class="field">
-        <label class="label">備考</label>
-        <textarea class="textarea" id="note" rows="2"></textarea>
+        <button class="button is-success is-fullwidth is-large" onclick="sendShift()">
+          <strong>この内容で申請する</strong>
+        </button>
       </div>
-
-      <button class="button is-success is-fullwidth is-large" onclick="sendShift()">
-        <strong>この内容で申請する</strong>
-      </button>
     </div>
   </div>
 
@@ -94,6 +114,35 @@
     const GAS_URL = "https://script.google.com/macros/s/AKfycbwCfBE-qtwwgyGSk6vPEnWhMu1Y6i2GKvVZ8Xj-3jc3o0QlK_Or1_z7-rhcWkioAcFv_g/exec";
     const WEEKDAYS = ['日','月','火','水','木','金','土'];
     let weekStart = getMonday(new Date());
+
+    async function checkAuth() {
+      const name = document.getElementById('authName').value.trim();
+      if (!name) { alert('お名前を入力してください'); return; }
+
+      const btn = document.querySelector('#authScreen button');
+      btn.disabled = true;
+      btn.textContent = '確認中...';
+
+      try {
+        const res = await fetch(`${GAS_URL}?page=auth&name=${encodeURIComponent(name)}`);
+        const data = await res.json();
+
+        if (data.auth) {
+          document.getElementById('authScreen').style.display = 'none';
+          document.getElementById('mainContent').style.display = 'block';
+          document.getElementById('userName').value = name;
+          renderRows();
+        } else {
+          document.getElementById('authError').style.display = 'block';
+          btn.disabled = false;
+          btn.textContent = '確認する';
+        }
+      } catch(err) {
+        alert('エラーが発生しました: ' + err);
+        btn.disabled = false;
+        btn.textContent = '確認する';
+      }
+    }
 
     function getMonday(date) {
       const d = new Date(date);
@@ -264,7 +313,6 @@
 
         if (res.ok) {
           alert('申請が完了しました！');
-          document.getElementById('userName').value = '';
           document.getElementById('note').value = '';
           renderRows();
         } else {
@@ -277,8 +325,6 @@
         btn.innerHTML = '<strong>この内容で申請する</strong>';
       }
     }
-
-    renderRows();
   </script>
 </body>
 </html>
