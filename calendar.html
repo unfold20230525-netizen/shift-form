@@ -162,34 +162,40 @@
     let currentName = '';
 
     async function checkAuth() {
-      const name = document.getElementById('authName').value.trim();
-      if (!name) { alert('お名前を入力してください'); return; }
+  const name = document.getElementById('authName').value.trim();
+  const tel = document.getElementById('authTel').value.trim();
+  if (!name) { alert('お名前を入力してください'); return; }
+  if (!tel) { alert('電話番号を入力してください'); return; }
 
-      const btn = document.querySelector('#authScreen button');
-      btn.disabled = true;
-      btn.textContent = '確認中...';
+  const btn = document.querySelector('#authScreen button');
+  btn.disabled = true;
+  btn.textContent = '確認中...';
 
-      try {
-        const res = await fetch(`${GAS_URL}?page=auth&name=${encodeURIComponent(name)}`);
-        const data = await res.json();
+  try {
+    const res = await fetch(`${GAS_URL}?page=auth&name=${encodeURIComponent(name)}&tel=${encodeURIComponent(tel)}`);
+    const data = await res.json();
 
-        if (data.auth) {
-          document.getElementById('authScreen').style.display = 'none';
-          document.getElementById('mainContent').style.display = 'block';
-          currentName = name;
-          await loadShifts();
-          render();
-        } else {
-          document.getElementById('authError').style.display = 'block';
-          btn.disabled = false;
-          btn.textContent = '確認する';
-        }
-      } catch(err) {
-        alert('エラーが発生しました: ' + err);
-        btn.disabled = false;
-        btn.textContent = '確認する';
+    if (data.auth) {
+      document.getElementById('authScreen').style.display = 'none';
+      document.getElementById('mainContent').style.display = 'block';
+      document.getElementById('userName').value = name;
+      // calendar.htmlのみ以下も実行
+      if (typeof loadShifts === 'function') {
+        currentName = name;
+        await loadShifts();
+        render();
       }
+    } else {
+      document.getElementById('authError').style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = '確認する';
     }
+  } catch(err) {
+    alert('エラーが発生しました: ' + err);
+    btn.disabled = false;
+    btn.textContent = '確認する';
+  }
+}
 
     function getMonday(date) {
       const d = new Date(date);
