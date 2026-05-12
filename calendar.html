@@ -68,17 +68,18 @@
 
   <!-- 認証画面 -->
   <div id="authScreen" class="auth-screen">
-    <div class="auth-card">
-      <div style="font-size:40px;margin-bottom:1rem">🔐</div>
-      <h2 style="font-weight:bold;margin-bottom:0.5rem">スタッフ認証</h2>
-      <p style="color:#888;font-size:13px;margin-bottom:1.5rem">登録済みのお名前を入力してください</p>
-      <input class="input" type="text" id="authName" placeholder="例：山田太郎" style="margin-bottom:1rem">
-      <div id="authError" style="color:red;font-size:13px;margin-bottom:0.5rem;display:none">
-        登録されていません。先にスタッフ登録を行ってください。
-      </div>
-      <button class="button is-info is-fullwidth" onclick="checkAuth()">確認する</button>
+  <div class="auth-card">
+    <div style="font-size:40px;margin-bottom:1rem">🔐</div>
+    <h2 style="font-weight:bold;margin-bottom:0.5rem">スタッフ認証</h2>
+    <p style="color:#888;font-size:13px;margin-bottom:1.5rem">お名前と電話番号を入力してください</p>
+    <input class="input" type="text" id="authName" placeholder="例：山田太郎" style="margin-bottom:0.75rem">
+    <input class="input" type="tel" id="authTel" placeholder="例：09012345678" style="margin-bottom:1rem">
+    <div id="authError" style="color:red;font-size:13px;margin-bottom:0.5rem;display:none">
+      名前または電話番号が一致しません。
     </div>
+    <button class="button is-info is-fullwidth" onclick="checkAuth()">確認する</button>
   </div>
+</div>
 
   <!-- メインコンテンツ（認証後に表示） -->
   <div id="mainContent" style="display:none">
