@@ -10,6 +10,8 @@
     .wrap { max-width: 680px; margin: 0 auto; }
     .auth-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
     .auth-card { background: white; border-radius: 12px; padding: 2rem; width: 100%; max-width: 400px; text-align: center; }
+    .user-info { text-align: right; font-size: 13px; color: #888; margin-bottom: 10px; }
+    .logout-btn { font-size: 12px; color: #888; background: none; border: 1px solid #ddd; border-radius: 4px; padding: 2px 8px; cursor: pointer; }
     .view-toggle { display: flex; gap: 6px; margin-bottom: 1.2rem; }
     .view-btn { border: 1px solid #ddd; background: white; border-radius: 6px; padding: 6px 16px; font-size: 14px; cursor: pointer; }
     .view-btn.active { background: #3273dc; color: white; border-color: #3273dc; }
@@ -67,23 +69,27 @@
 <body>
 
   <!-- 認証画面 -->
-  <div id="authScreen" class="auth-screen">
-  <div class="auth-card">
-    <div style="font-size:40px;margin-bottom:1rem">🔐</div>
-    <h2 style="font-weight:bold;margin-bottom:0.5rem">スタッフ認証</h2>
-    <p style="color:#888;font-size:13px;margin-bottom:1.5rem">お名前と電話番号を入力してください</p>
-    <input class="input" type="text" id="authName" placeholder="例：山田太郎" style="margin-bottom:0.75rem">
-    <input class="input" type="tel" id="authTel" placeholder="例：09012345678" style="margin-bottom:1rem">
-    <div id="authError" style="color:red;font-size:13px;margin-bottom:0.5rem;display:none">
-      名前または電話番号が一致しません。
+  <div id="authScreen" class="auth-screen" style="display:none">
+    <div class="auth-card">
+      <div style="font-size:40px;margin-bottom:1rem">🔐</div>
+      <h2 style="font-weight:bold;margin-bottom:0.5rem">スタッフ認証</h2>
+      <p style="color:#888;font-size:13px;margin-bottom:1.5rem">お名前と電話番号を入力してください</p>
+      <input class="input" type="text" id="authName" placeholder="例：山田太郎" style="margin-bottom:0.75rem">
+      <input class="input" type="tel" id="authTel" placeholder="例：09012345678" style="margin-bottom:1rem">
+      <div id="authError" style="color:red;font-size:13px;margin-bottom:0.5rem;display:none">
+        名前または電話番号が一致しません。
+      </div>
+      <button class="button is-info is-fullwidth" onclick="checkAuth()">確認する</button>
     </div>
-    <button class="button is-info is-fullwidth" onclick="checkAuth()">確認する</button>
   </div>
-</div>
 
   <!-- メインコンテンツ（認証後に表示） -->
   <div id="mainContent" style="display:none">
     <div class="wrap">
+      <div class="user-info">
+        <span id="displayName"></span>
+        <button class="logout-btn" onclick="logout()">ログアウト</button>
+      </div>
       <h2 style="font-weight:bold;text-align:center;margin-bottom:20px">📅 シフトカレンダー</h2>
 
       <div class="view-toggle">
@@ -161,40 +167,63 @@
     let shiftData = {};
     let currentName = '';
 
+    window.onload = function() {
+      const saved = localStorage.getItem('kintaiUser');
+      if (saved) {
+        const data = JSON.parse(saved);
+        const now = new Date().getTime();
+        if (now - data.loginTime < 24 * 60 * 60 * 1000) {
+          showMain(data.name);
+          return;
+        } else {
+          localStorage.removeItem('kintaiUser');
+        }
+      }
+      document.getElementById('authScreen').style.display = 'flex';
+    };
+
+    function logout() {
+      localStorage.removeItem('kintaiUser');
+      document.getElementById('authScreen').style.display = 'flex';
+      document.getElementById('mainContent').style.display = 'none';
+    }
+
     async function checkAuth() {
-  const name = document.getElementById('authName').value.trim();
-  const tel = document.getElementById('authTel').value.trim();
-  if (!name) { alert('お名前を入力してください'); return; }
-  if (!tel) { alert('電話番号を入力してください'); return; }
+      const name = document.getElementById('authName').value.trim();
+      const tel  = document.getElementById('authTel').value.trim();
+      if (!name) { alert('お名前を入力してください'); return; }
+      if (!tel)  { alert('電話番号を入力してください'); return; }
 
-  const btn = document.querySelector('#authScreen button');
-  btn.disabled = true;
-  btn.textContent = '確認中...';
+      const btn = document.querySelector('#authScreen button');
+      btn.disabled = true;
+      btn.textContent = '確認中...';
 
-  try {
-    const res = await fetch(`${GAS_URL}?page=auth&name=${encodeURIComponent(name)}&tel=${encodeURIComponent(tel)}`);
-    const data = await res.json();
+      try {
+        const res  = await fetch(`${GAS_URL}?page=auth&name=${encodeURIComponent(name)}&tel=${encodeURIComponent(tel)}`);
+        const data = await res.json();
+        if (data.auth) {
+          localStorage.setItem('kintaiUser', JSON.stringify({ name, tel, loginTime: new Date().getTime() }));
+          showMain(name);
+        } else {
+          document.getElementById('authError').style.display = 'block';
+          btn.disabled = false;
+          btn.textContent = '確認する';
+        }
+      } catch(err) {
+        alert('エラーが発生しました: ' + err);
+        btn.disabled = false;
+        btn.textContent = '確認する';
+      }
+    }
 
-    if (data.auth) {
+    async function showMain(name) {
+      currentName = name;
       document.getElementById('authScreen').style.display = 'none';
       document.getElementById('mainContent').style.display = 'block';
-      // calendar.htmlのみ以下も実行
-      if (typeof loadShifts === 'function') {
-        currentName = name;
-        await loadShifts();
-        render();
-      }
-    } else {
-      document.getElementById('authError').style.display = 'block';
-      btn.disabled = false;
-      btn.textContent = '確認する';
+      document.getElementById('displayName').textContent = name + ' さん';
+      await loadShifts();
+      render();
     }
-  } catch(err) {
-    alert('エラーが発生しました: ' + err);
-    btn.disabled = false;
-    btn.textContent = '確認する';
-  }
-}
 
     function getMonday(date) {
       const d = new Date(date);
@@ -210,14 +239,11 @@
     async function loadShifts() {
       document.getElementById('loadingMsg').style.display = 'block';
       document.getElementById('mainGrid').style.display = 'none';
-
       try {
         const res = await fetch(`${GAS_URL}?page=api&name=${encodeURIComponent(currentName)}`);
         const data = await res.json();
         shiftData = {};
-        for (const item of data) {
-          shiftData[item.date] = item.shift;
-        }
+        for (const item of data) { shiftData[item.date] = item.shift; }
       } catch(err) {
         console.error(err);
       } finally {
@@ -250,9 +276,7 @@
       render();
     }
 
-    function render() {
-      view === 'month' ? renderMonth() : renderWeek();
-    }
+    function render() { view === 'month' ? renderMonth() : renderWeek(); }
 
     function openDetail(key, shift) {
       if (!shift) return;
