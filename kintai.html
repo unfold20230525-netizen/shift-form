@@ -241,17 +241,37 @@ const MAX_DISTANCE = 1000;
           try {
             const now     = new Date();
             const timeStr = now.getHours() + ':' + String(now.getMinutes()).padStart(2, '0');
-            const res = await fetch(GAS_URL, {
-              method: 'POST',
-              body: JSON.stringify({
-                type: 'kintaiRequest',
-                userName: currentUser.name,
-                punchType: type,
-                latitude: lat,
-                longitude: lng,
-                accuracy: Math.round(accuracy)
-              })
-            });
+            // 逆ジオコーディングで住所取得
+let address = '';
+let zip = '';
+try {
+  const geoRes = await fetch(
+    `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=ja`,
+    { headers: { 'User-Agent': 'UNFOLD-kintai-app' } }
+  );
+  const geoData = await geoRes.json();
+  if (geoData && geoData.address) {
+    const a = geoData.address;
+    zip = a.postcode || '';
+    address = (a.province || '') + (a.city || '') + (a.suburb || '') + (a.neighbourhood || '') + (a.road || '') + (a.house_number || '');
+  }
+} catch(e) {
+  console.log('住所取得失敗:', e);
+}
+
+const res = await fetch(GAS_URL, {
+  method: 'POST',
+  body: JSON.stringify({
+    type: 'kintaiRequest',
+    userName: currentUser.name,
+    punchType: type,
+    latitude: lat,
+    longitude: lng,
+    accuracy: Math.round(accuracy),
+    address: address,
+    zip: zip
+  })
+});
 
             if (res.ok) {
               const punchData = {
