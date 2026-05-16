@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>勤怠打刻</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+  <style>
+    body { padding: 15px; background: #f5f5f5; }
+    .auth-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+    .auth-card { background: white; border-radius: 12px; padding: 2rem; width: 100%; max-width: 400px; text-align: center; }
+    .btn-kintai { width: 100%; padding: 20px; font-size: 18px; font-weight: bold; border-radius: 12px; border: none; cursor: pointer; margin-bottom: 12px; color: white; }
+    .btn-syukkin { background: #2ecc71; }
+    .btn-taikin  { background: #e74c3c; }
+    .btn-kyukei-start { background: #f39c12; }
+    .btn-kyukei-end   { background: #3498db; }
+    .btn-kintai:disabled { background: #bdc3c7; cursor: not-allowed; }
+    .status-box { background: white; border-radius: 12px; padding: 15px; margin-bottom: 15px; text-align: center; }
+    .status-text { font-size: 16px; font-weight: bold; }
+    .error-box { background: #ffebee; border: 1px solid #e53935; border-radius: 8px; padding: 10px; margin-bottom: 10px; color: #e53935; font-size: 13px; display: none; }
+    .success-box { background: #e8f5e9; border: 1px solid #43a047; border-radius: 8px; padding: 10px; margin-bottom: 10px; color: #43a047; font-size: 13px; display: none; }
+    .user-info { text-align: right; font-size: 13px; color: #888; margin-bottom: 10px; }
+    .logout-btn { font-size: 12px; color: #888; background: none; border: 1px solid #ddd; border-radius: 4px; padding: 2px 8px; cursor: pointer; }
+  </style>
+</head>
+<body>
+
+  <!-- 認証画面 -->
+  <div id="authScreen" class="auth-screen">
+    <div class="auth-card">
+      <div style="font-size:40px;margin-bottom:1rem">🕐</div>
+      <h2 style="font-weight:bold;margin-bottom:0.5rem">勤怠打刻</h2>
+      <p style="color:#888;font-size:13px;margin-bottom:1.5rem">お名前と電話番号を入力してください</p>
+      <input class="input" type="text" id="authName" placeholder="例：山田太郎" style="margin-bottom:0.75rem">
+      <input class="input" type="tel" id="authTel" placeholder="例：09012345678" style="margin-bottom:1rem">
+      <div id="authError" style="color:red;font-size:13px;margin-bottom:0.5rem;display:none">
+        名前または電話番号が一致しません。
+      </div>
+      <button class="button is-info is-fullwidth" onclick="checkAuth()">ログイン</button>
+    </div>
+  </div>
+
+  <!-- メインコンテンツ -->
+  <div id="mainContent" style="display:none">
+    <div class="user-info">
+      <span id="displayName"></span>
+      <button class="logout-btn" onclick="logout()">ログアウト</button>
+    </div>
+
+    <div class="status-box">
+      <div style="font-size:13px;color:#888;margin-bottom:5px">現在の状態</div>
+      <div class="status-text" id="currentStatus">確認中...</div>
+    </div>
+
+    <div id="errorBox" class="error-box"></div>
+    <div id="successBox" class="success-box"></div>
+
+    <button class="btn-kintai btn-syukkin" id="btnSyukkin" onclick="doPunch('出勤')">
+      🟢 出勤
+    </button>
+    <button class="btn-kintai btn-kyukei-start" id="btnKyukeiStart" onclick="doPunch('休憩開始')">
+      🟡 休憩開始
+    </button>
+    <button class="btn-kintai btn-kyukei-end" id="btnKyukeiEnd" onclick="doPunch('休憩終了')">
+      🔵 休憩終了
+    </button>
+    <button class="btn-kintai btn-taikin" id="btnTaikin" onclick="doPunch('退勤')">
+      🔴 退勤
+    </button>
+
+    <p style="font-size:11px;color:#aaa;text-align:center;margin-top:15px">
+      ※打刻時に位置情報を取得します。会社から300m以内でないと打刻できません。
+    </p>
+  </div>
+
+  <script>
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbwCfBE-qtwwgyGSk6vPEnWhMu1Y6i2GKvVZ8Xj-3jc3o0QlK_Or1_z7-rhcWkioAcFv_g/exec";
+    const COMPANY_LAT = 37.1461;
+    const COMPANY_LNG = 140.2491;
+    const MAX_DISTANCE = 300;
+    const MAX_ACCURACY = 200;
+    const MIN_INTERVAL = 5 * 60 * 1000; // 5分
+
+    let currentUser = null;
+
+    // 起動時にlocalStorageを確認
+    window.onload = function() {
+      const saved = localStorage.getItem('kintaiUser');
+      if (saved) {
+        const data = JSON.parse(saved);
+        const now = new Date().getTime();
+        if (now - data.loginTime < 24 * 60 * 60 * 1000) {
+          currentUser = data;
+          showMain();
+          return;
+        } else {
+          localStorage.removeItem('kintaiUser');
+        }
+      }
+      document.getElementById('authScreen').style.display = 'flex';
+    };
+
+    async function checkAuth() {
+      const name = document.getElementById('authName').value.trim();
+      const tel  = document.getElementById('authTel').value.trim();
+      if (!name) { alert('お名前を入力してください'); return; }
+      if (!tel)  { alert('電話番号を入力してください'); return; }
+
+      const btn = document.querySelector('#authScreen button');
+      btn.disabled = true;
+      btn.textContent = '確認中...';
+
+      try {
+        const res  = await fetch(`${GAS_URL}?page=auth&name=${encodeURIComponent(name)}&tel=${encodeURIComponent(tel)}`);
+        const data = await res.json();
+        if (data.auth) {
+          currentUser = { name, tel, loginTime: new Date().getTime() };
+          localStorage.setItem('kintaiUser', JSON.stringify(currentUser));
+          showMain();
+        } else {
+          document.getElementById('authError').style.display = 'block';
+          btn.disabled = false;
+          btn.textContent = 'ログイン';
+        }
+      } catch(err) {
+        alert('エラーが発生しました: ' + err);
+        btn.disabled = false;
+        btn.textContent = 'ログイン';
+      }
+    }
+
+    function showMain() {
+      document.getElementById('authScreen').style.display = 'none';
+      document.getElementById('mainContent').style.display = 'block';
+      document.getElementById('displayName').textContent = currentUser.name + ' さん';
+      updateStatus();
+    }
+
+    function logout() {
+      localStorage.removeItem('kintaiUser');
+      currentUser = null;
+      document.getElementById('authScreen').style.display = 'flex';
+      document.getElementById('mainContent').style.display = 'none';
+    }
+
+    function updateStatus() {
+      const lastPunch = localStorage.getItem('lastPunch_' + currentUser.name);
+      const statusEl  = document.getElementById('currentStatus');
+      if (lastPunch) {
+        const data = JSON.parse(lastPunch);
+        statusEl.textContent = data.type + '（' + data.time + '）';
+      } else {
+        statusEl.textContent = '未打刻';
+      }
+      updateButtons();
+    }
+
+    function updateButtons() {
+      const lastPunch = localStorage.getItem('lastPunch_' + currentUser.name);
+      const type = lastPunch ? JSON.parse(lastPunch).type : '';
+      document.getElementById('btnSyukkin').disabled     = (type === '出勤' || type === '休憩開始' || type === '休憩終了');
+      document.getElementById('btnKyukeiStart').disabled = (type !== '出勤' && type !== '休憩終了');
+      document.getElementById('btnKyukeiEnd').disabled   = (type !== '休憩開始');
+      document.getElementById('btnTaikin').disabled      = (type !== '出勤' && type !== '休憩終了');
+    }
+
+    function showError(msg) {
+      const el = document.getElementById('errorBox');
+      el.textContent = msg;
+      el.style.display = 'block';
+      document.getElementById('successBox').style.display = 'none';
+      setTimeout(() => { el.style.display = 'none'; }, 5000);
+    }
+
+    function showSuccess(msg) {
+      const el = document.getElementById('successBox');
+      el.textContent = msg;
+      el.style.display = 'block';
+      document.getElementById('errorBox').style.display = 'none';
+      setTimeout(() => { el.style.display = 'none'; }, 5000);
+    }
+
+    function calcDistance(lat1, lng1, lat2, lng2) {
+      const R = 6371000;
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLng = (lng2 - lng1) * Math.PI / 180;
+      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLng/2) * Math.sin(dLng/2);
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    }
+
+    async function doPunch(type) {
+      // 連続打刻チェック
+      const lastPunch = localStorage.getItem('lastPunch_' + currentUser.name);
+      if (lastPunch) {
+        const data = JSON.parse(lastPunch);
+        const diff = new Date().getTime() - data.timestamp;
+        if (diff < MIN_INTERVAL) {
+          const remaining = Math.ceil((MIN_INTERVAL - diff) / 1000 / 60);
+          showError(`前回の打刻から${remaining}分後に打刻できます`);
+          return;
+        }
+      }
+
+      // ボタンを無効化
+      const buttons = document.querySelectorAll('.btn-kintai');
+      buttons.forEach(b => b.disabled = true);
+      showError('');
+      document.getElementById('currentStatus').textContent = '位置情報を取得中...';
+
+      // 位置情報取得
+      if (!navigator.geolocation) {
+        showError('このブラウザは位置情報に対応していません');
+        updateButtons();
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const lat      = position.coords.latitude;
+          const lng      = position.coords.longitude;
+          const accuracy = position.coords.accuracy;
+
+          // 精度チェック
+          if (accuracy > MAX_ACCURACY) {
+            showError(`位置情報の精度が低すぎます（誤差${Math.round(accuracy)}m）。屋外に出て再度お試しください。`);
+            updateStatus();
+            return;
+          }
+
+          // 距離チェック
+          const distance = calcDistance(lat, lng, COMPANY_LAT, COMPANY_LNG);
+          if (distance > MAX_DISTANCE) {
+            showError(`会社から離れすぎています（${Math.round(distance)}m）。会社の近くで打刻してください。`);
+            updateStatus();
+            return;
+          }
+
+          // GASに送信
+          try {
+            const now     = new Date();
+            const timeStr = now.getHours() + ':' + String(now.getMinutes()).padStart(2, '0');
+            const res = await fetch(GAS_URL, {
+              method: 'POST',
+              body: JSON.stringify({
+                type: 'kintaiRequest',
+                userName: currentUser.name,
+                punchType: type,
+                latitude: lat,
+                longitude: lng,
+                accuracy: Math.round(accuracy)
+              })
+            });
+
+            if (res.ok) {
+              const punchData = {
+                type: type,
+                time: timeStr,
+                timestamp: now.getTime()
+              };
+              localStorage.setItem('lastPunch_' + currentUser.name, JSON.stringify(punchData));
+              showSuccess(`【${type}】を記録しました！（${timeStr}）`);
+              updateStatus();
+            } else {
+              showError('送信に失敗しました。再度お試しください。');
+              updateStatus();
+            }
+          } catch(err) {
+            showError('通信エラーが発生しました: ' + err);
+            updateStatus();
+          }
+        },
+        (error) => {
+          switch(error.code) {
+            case error.PERMISSION_DENIED:
+              showError('位置情報の使用が拒否されています。ブラウザの設定を確認してください。');
+              break;
+            case error.POSITION_UNAVAILABLE:
+              showError('位置情報を取得できませんでした。');
+              break;
+            case error.TIMEOUT:
+              showError('位置情報の取得がタイムアウトしました。');
+              break;
+          }
+          updateStatus();
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      );
+    }
+  </script>
+</body>
+</html>
