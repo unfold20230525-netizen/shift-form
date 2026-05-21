@@ -12,449 +12,217 @@
     .week-selector button { border: none; background: #3273dc; color: white; border-radius: 50%; width: 30px; height: 30px; font-size: 16px; cursor: pointer; }
     .bulk-section { background: #f0f7ff; border-radius: 8px; padding: 12px; margin-bottom: 1rem; }
     .bulk-title { font-size: 13px; font-weight: bold; color: #0C447C; margin-bottom: 10px; }
-    .bulk-row { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
+    .tmpl-btns { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+    .tmpl-btn { border: 1px solid #3273dc; background: white; color: #3273dc; border-radius: 6px; padding: 6px 10px; font-size: 12px; cursor: pointer; }
+    .tmpl-btn.active { background: #3273dc; color: white; }
+    .tmpl-btn.holiday { border-color: #FFC107; color: #856404; }
+    .tmpl-btn.holiday.active { background: #FFC107; color: #856404; }
+    .apply-row { display: flex; gap: 6px; flex-wrap: wrap; }
     .apply-btn { border: none; color: white; border-radius: 6px; padding: 6px 12px; font-size: 13px; cursor: pointer; }
-    .day-row { display: grid; grid-template-columns: 75px 1fr 1fr 80px; gap: 6px; align-items: end; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
+    .day-row { display: grid; grid-template-columns: 70px 1fr 1fr 72px; gap: 4px; align-items: end; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
     .day-row:last-child { border-bottom: none; }
     .day-label { font-size: 12px; font-weight: bold; padding-bottom: 6px; }
     .day-label.sat { color: #378ADD; }
     .day-label.sun { color: #E24B4A; }
     .time-wrap { display: flex; flex-direction: column; }
     .time-label { font-size: 10px; color: #888; margin-bottom: 2px; }
-    .holiday-select { border: 1px solid #ddd; border-radius: 6px; padding: 6px 4px; font-size: 12px; width: 100%; box-sizing: border-box; }
-    .holiday-select.selected { background: #FFF3CD; border-color: #FFC107; color: #856404; font-weight: bold; }
+    .time-input { border: 1px solid #ddd; border-radius: 6px; padding: 6px 4px; font-size: 13px; width: 100%; box-sizing: border-box; text-align: center; }
+    .time-input:disabled { background: #f5f5f5; color: #bbb; }
+    .state-btn { border: 1px solid #ddd; border-radius: 6px; padding: 6px 4px; font-size: 12px; width: 100%; background: white; cursor: pointer; text-align: center; }
+    .state-btn.holiday { background: #FFF3CD; border-color: #FFC107; color: #856404; font-weight: bold; }
     .auth-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
     .auth-card { background: white; border-radius: 12px; padding: 2rem; width: 100%; max-width: 400px; text-align: center; }
- 
-    /* 時間表示ボタン */
-    .time-display-btn {
-      border: 1px solid #ddd; border-radius: 6px; padding: 6px 4px;
-      font-size: 13px; width: 100%; box-sizing: border-box;
-      background: white; cursor: pointer; text-align: center;
-      color: #333; min-height: 34px;
-    }
-    .time-display-btn.disabled { background: #f5f5f5; color: #bbb; cursor: default; }
-    .time-display-btn.empty { color: #aaa; }
- 
-    /* ピッカーオーバーレイ */
-    .picker-overlay {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.4); z-index: 1000;
-      display: flex; align-items: flex-end; justify-content: center;
-    }
-    .picker-sheet {
-      background: white; width: 100%; max-width: 480px;
-      border-radius: 16px 16px 0 0; padding-bottom: env(safe-area-inset-bottom);
-    }
-    .picker-header {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 14px 20px; border-bottom: 1px solid #eee;
-    }
-    .picker-title { font-size: 15px; font-weight: bold; color: #333; }
-    .picker-done {
-      background: #3273dc; color: white; border: none;
-      border-radius: 8px; padding: 6px 18px; font-size: 14px; cursor: pointer;
-    }
-    .picker-cancel {
-      background: none; color: #888; border: none;
-      font-size: 14px; cursor: pointer; padding: 6px 4px;
-    }
-    .picker-body {
-      display: flex; justify-content: center; align-items: center;
-      gap: 0; padding: 0 20px; position: relative; height: 200px; overflow: hidden;
-    }
-    /* 選択ライン */
-    .picker-body::before, .picker-body::after {
-      content: ''; position: absolute; left: 20px; right: 20px;
-      height: 1px; background: #ddd; z-index: 2; pointer-events: none;
-    }
-    .picker-body::before { top: 78px; }
-    .picker-body::after  { bottom: 78px; }
- 
-    .picker-col {
-      flex: 1; height: 200px; overflow: hidden; position: relative;
-      cursor: pointer; user-select: none;
-    }
-    .picker-col-inner {
-      padding: 78px 0;
-    }
-    .picker-item {
-      height: 44px; display: flex; align-items: center; justify-content: center;
-      font-size: 22px; color: #bbb; transition: color 0.15s, font-size 0.15s;
-    }
-    .picker-item.selected { color: #222; font-size: 26px; font-weight: bold; }
-    .picker-sep {
-      font-size: 24px; font-weight: bold; color: #333;
-      padding: 0 4px; flex-shrink: 0; margin-top: -4px;
-    }
   </style>
 </head>
 <body>
- 
-  <!-- 認証画面 -->
-  <div id="authScreen" class="auth-screen">
-    <div class="auth-card">
-      <div style="font-size:40px;margin-bottom:1rem">🔐</div>
-      <h2 style="font-weight:bold;margin-bottom:0.5rem">スタッフ認証</h2>
-      <p style="color:#888;font-size:13px;margin-bottom:1.5rem">お名前と電話番号を入力してください</p>
-      <input class="input" type="text" id="authName" placeholder="例：山田太郎" style="margin-bottom:0.75rem">
-      <input class="input" type="tel" id="authTel" placeholder="例：09012345678" style="margin-bottom:1rem">
-      <div id="authError" style="color:red;font-size:13px;margin-bottom:0.5rem;display:none">
-        名前または電話番号が一致しません。
+
+<div id="authScreen" class="auth-screen">
+  <div class="auth-card">
+    <div style="font-size:40px;margin-bottom:1rem">🔐</div>
+    <h2 style="font-weight:bold;margin-bottom:0.5rem">スタッフ認証</h2>
+    <p style="color:#888;font-size:13px;margin-bottom:1.5rem">お名前と電話番号を入力してください</p>
+    <input class="input" type="text" id="authName" placeholder="例：山田太郎" style="margin-bottom:0.75rem">
+    <input class="input" type="tel" id="authTel" placeholder="例：09012345678" style="margin-bottom:1rem">
+    <div id="authError" style="color:red;font-size:13px;margin-bottom:0.5rem;display:none">名前または電話番号が一致しません。</div>
+    <button class="button is-info is-fullwidth" onclick="checkAuth()">確認する</button>
+  </div>
+</div>
+
+<div id="mainContent" style="display:none">
+  <div class="card">
+    <div class="card-content">
+      <h2 style="font-weight:bold;text-align:center;margin-bottom:20px">📅 シフト申請フォーム</h2>
+      <div class="field">
+        <label class="label">お名前</label>
+        <input class="input" type="text" id="userName" readonly style="background:#f5f5f5">
       </div>
-      <button class="button is-info is-fullwidth" onclick="checkAuth()">確認する</button>
+      <div class="field">
+        <label class="label">対象週</label>
+        <div class="week-selector">
+          <button onclick="changeWeek(-1)">＜</button>
+          <span id="weekLabel" style="font-weight:bold;font-size:14px"></span>
+          <button onclick="changeWeek(1)">＞</button>
+        </div>
+      </div>
+
+      <div class="bulk-section">
+        <div class="bulk-title">⚡ 一括入力</div>
+        <div class="tmpl-btns">
+          <button class="tmpl-btn" onclick="selectTmpl('09:00','17:00',this)">9:00〜17:00</button>
+          <button class="tmpl-btn" onclick="selectTmpl('12:00','20:00',this)">12:00〜20:00</button>
+          <button class="tmpl-btn" onclick="selectTmpl('15:00','23:00',this)">15:00〜23:00</button>
+          <button class="tmpl-btn holiday" onclick="selectTmpl('holiday','',this)">休み</button>
+        </div>
+        <div class="apply-row">
+          <button class="apply-btn" style="background:#3273dc" onclick="applyBulk('all')">全日に適用</button>
+          <button class="apply-btn" style="background:#639922" onclick="applyBulk('weekday')">平日のみ</button>
+          <button class="apply-btn" style="background:#BA7517" onclick="applyBulk('weekend')">土日のみ</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="label">勤務時間入力</label>
+        <p style="font-size:11px;color:#aaa;margin-bottom:8px">※テンプレート選択後、個別に直接修正できます</p>
+        <div id="dayRows"></div>
+      </div>
+      <div class="field">
+        <label class="label">備考</label>
+        <textarea class="textarea" id="note" rows="2"></textarea>
+      </div>
+      <button class="button is-success is-fullwidth is-large" onclick="sendShift()">
+        <strong>この内容で申請する</strong>
+      </button>
     </div>
   </div>
- 
-  <!-- メインコンテンツ -->
-  <div id="mainContent" style="display:none">
-    <div class="card">
-      <div class="card-content">
-        <h2 style="font-weight:bold;text-align:center;margin-bottom:20px">📅 シフト申請フォーム</h2>
- 
-        <div class="field">
-          <label class="label">お名前</label>
-          <input class="input" type="text" id="userName" readonly style="background:#f5f5f5">
-        </div>
- 
-        <div class="field">
-          <label class="label">対象週</label>
-          <div class="week-selector">
-            <button onclick="changeWeek(-1)">＜</button>
-            <span id="weekLabel" style="font-weight:bold;font-size:14px"></span>
-            <button onclick="changeWeek(1)">＞</button>
-          </div>
-        </div>
- 
-        <div class="bulk-section">
-          <div class="bulk-title">⚡ 一括入力</div>
-          <div class="bulk-row">
-            <select class="input" id="templateSelect" style="max-width:200px" onchange="onTemplateChange()">
-              <option value="">テンプレートを選択</option>
-              <option value="0900-1700">9:00〜17:00</option>
-              <option value="1200-2000">12:00〜20:00</option>
-              <option value="1500-2300">15:00〜23:00</option>
-              <option value="custom">時間設定</option>
-              <option value="holiday">休み</option>
-            </select>
-          </div>
-          <div id="customTimeRow" style="display:none;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap">
-            <button class="time-display-btn" id="customStartBtn" style="max-width:90px" onclick="openPicker('customStart','開始時間')">--:--</button>
-            <span style="font-size:12px;color:#888">〜</span>
-            <button class="time-display-btn" id="customEndBtn" style="max-width:90px" onclick="openPicker('customEnd','終了時間')">--:--</button>
-          </div>
-          <div class="bulk-row" style="margin-top:8px">
-            <button class="apply-btn" style="background:#3273dc" onclick="applyBulk('all')">全日に適用</button>
-            <button class="apply-btn" style="background:#639922" onclick="applyBulk('weekday')">平日のみ</button>
-            <button class="apply-btn" style="background:#BA7517" onclick="applyBulk('weekend')">土日のみ</button>
-          </div>
-        </div>
- 
-        <div class="field">
-          <label class="label">勤務時間入力</label>
-          <p style="font-size:11px;color:#aaa;margin-bottom:8px">※個別に変更したい日は直接入力してください</p>
-          <div id="dayRows"></div>
-        </div>
- 
-        <div class="field">
-          <label class="label">備考</label>
-          <textarea class="textarea" id="note" rows="2"></textarea>
-        </div>
- 
-        <button class="button is-success is-fullwidth is-large" onclick="sendShift()">
-          <strong>この内容で申請する</strong>
-        </button>
+</div>
+
+<script>
+const GAS_URL = "https://script.google.com/macros/s/AKfycbwCfBE-qtwwgyGSk6vPEnWhMu1Y6i2GKvVZ8Xj-3jc3o0QlK_Or1_z7-rhcWkioAcFv_g/exec";
+const WEEKDAYS = ['日','月','火','水','木','金','土'];
+let weekStart = getMonday(new Date());
+let tmplStart = '', tmplEnd = '', tmplHoliday = false;
+
+function selectTmpl(start, end, btn) {
+  document.querySelectorAll('.tmpl-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  tmplHoliday = start === 'holiday';
+  tmplStart = tmplHoliday ? '' : start;
+  tmplEnd   = tmplHoliday ? '' : end;
+}
+
+function applyBulk(target) {
+  if (!tmplStart && !tmplHoliday) { alert('テンプレートを選択してください'); return; }
+  for (let i = 0; i < 7; i++) {
+    const date = new Date(weekStart); date.setDate(weekStart.getDate() + i);
+    const dow = date.getDay();
+    const ok = target==='all' || (target==='weekday' && dow!==0 && dow!==6) || (target==='weekend' && (dow===0||dow===6));
+    if (!ok) continue;
+    const si = document.getElementById('start_'+i);
+    const ei = document.getElementById('end_'+i);
+    const sb = document.getElementById('state_'+i);
+    if (tmplHoliday) {
+      si.value=''; si.disabled=true;
+      ei.value=''; ei.disabled=true;
+      sb.textContent='休み'; sb.className='state-btn holiday';
+    } else {
+      si.disabled=false; si.value=tmplStart;
+      ei.disabled=false; ei.value=tmplEnd;
+      sb.textContent='-'; sb.className='state-btn';
+    }
+  }
+}
+
+function toggleState(i) {
+  const si = document.getElementById('start_'+i);
+  const ei = document.getElementById('end_'+i);
+  const sb = document.getElementById('state_'+i);
+  const isHoliday = sb.classList.contains('holiday');
+  if (isHoliday) {
+    si.disabled=false; ei.disabled=false;
+    sb.textContent='-'; sb.className='state-btn';
+  } else {
+    si.value=''; si.disabled=true;
+    ei.value=''; ei.disabled=true;
+    sb.textContent='休み'; sb.className='state-btn holiday';
+  }
+}
+
+async function checkAuth() {
+  const name = document.getElementById('authName').value.trim();
+  const tel  = document.getElementById('authTel').value.trim();
+  if (!name) { alert('お名前を入力してください'); return; }
+  if (!tel)  { alert('電話番号を入力してください'); return; }
+  const btn = document.querySelector('#authScreen button');
+  btn.disabled=true; btn.textContent='確認中...';
+  try {
+    const res  = await fetch(`${GAS_URL}?page=auth&name=${encodeURIComponent(name)}&tel=${encodeURIComponent(tel)}`);
+    const data = await res.json();
+    if (data.auth) {
+      document.getElementById('authScreen').style.display='none';
+      document.getElementById('mainContent').style.display='block';
+      document.getElementById('userName').value=name;
+      renderRows();
+    } else {
+      document.getElementById('authError').style.display='block';
+      btn.disabled=false; btn.textContent='確認する';
+    }
+  } catch(err) { alert('エラー: '+err); btn.disabled=false; btn.textContent='確認する'; }
+}
+
+function getMonday(d) { const dt=new Date(d),day=dt.getDay(); dt.setDate(dt.getDate()+(day===0?-6:1-day)); dt.setHours(0,0,0,0); return dt; }
+function fmtDate(d) { return (d.getMonth()+1)+'/'+d.getDate(); }
+function fmtFull(d) { return d.getFullYear()+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0'); }
+function changeWeek(delta) { weekStart.setDate(weekStart.getDate()+delta*7); renderRows(); }
+
+function renderRows() {
+  const we=new Date(weekStart); we.setDate(weekStart.getDate()+6);
+  document.getElementById('weekLabel').textContent=fmtDate(weekStart)+'（月）〜'+fmtDate(we)+'（日）';
+  const c=document.getElementById('dayRows'); c.innerHTML='';
+  for (let i=0;i<7;i++) {
+    const date=new Date(weekStart); date.setDate(weekStart.getDate()+i);
+    const dow=date.getDay();
+    const lc=dow===0?'day-label sun':dow===6?'day-label sat':'day-label';
+    const row=document.createElement('div'); row.className='day-row';
+    row.innerHTML=`
+      <div class="${lc}">${fmtDate(date)}<br>（${WEEKDAYS[dow]}）</div>
+      <div class="time-wrap">
+        <div class="time-label">開始</div>
+        <input class="time-input" type="text" id="start_${i}" placeholder="09:00">
       </div>
-    </div>
-  </div>
- 
-  <!-- ドラムロールピッカー -->
-  <div id="pickerOverlay" class="picker-overlay" style="display:none" onclick="onOverlayClick(event)">
-    <div class="picker-sheet" onclick="event.stopPropagation()">
-      <div class="picker-header">
-        <button class="picker-cancel" onclick="closePicker(false)">キャンセル</button>
-        <div class="picker-title" id="pickerTitle">時間を選択</div>
-        <button class="picker-done" onclick="closePicker(true)">完了</button>
+      <div class="time-wrap">
+        <div class="time-label">終了</div>
+        <input class="time-input" type="text" id="end_${i}" placeholder="17:00">
       </div>
-      <div class="picker-body">
-        <div class="picker-col" id="colH"></div>
-        <div class="picker-sep">:</div>
-        <div class="picker-col" id="colM"></div>
-      </div>
-    </div>
-  </div>
- 
-  <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbwCfBE-qtwwgyGSk6vPEnWhMu1Y6i2GKvVZ8Xj-3jc3o0QlK_Or1_z7-rhcWkioAcFv_g/exec";
-    const WEEKDAYS = ['日','月','火','水','木','金','土'];
-    let weekStart = getMonday(new Date());
- 
-    // ===== ドラムロールピッカー =====
-    let pickerTarget = null; // どのボタンのピッカーか
-    let pickerHour = 9, pickerMin = 0;
-    const HOURS = Array.from({length:24}, (_,i) => String(i).padStart(2,'0'));
-    const MINS  = Array.from({length:60}, (_,i) => String(i).padStart(2,'0'));
- 
-    // 時間値ストア: key -> {h, m}
-    const timeStore = {};
- 
-    function getTimeStr(key) {
-      const v = timeStore[key];
-      if (!v || v.h === null) return null;
-      return v.h + ':' + v.m;
-    }
-    function setTimeStore(key, h, m) {
-      timeStore[key] = { h, m };
-    }
- 
-    function openPicker(targetKey, title) {
-      const btn = document.getElementById(targetKey + 'Btn');
-      if (btn && btn.classList.contains('disabled')) return;
-      pickerTarget = targetKey;
-      document.getElementById('pickerTitle').textContent = title;
-      const cur = timeStore[targetKey];
-      pickerHour = cur ? parseInt(cur.h) : 9;
-      pickerMin  = cur ? parseInt(cur.m) : 0;
-      buildCol('colH', HOURS, pickerHour, v => { pickerHour = parseInt(v); });
-      buildCol('colM', MINS,  pickerMin,  v => { pickerMin  = parseInt(v); });
-      document.getElementById('pickerOverlay').style.display = 'flex';
-    }
- 
-    function buildCol(colId, items, selectedIndex, onChange) {
-      const col = document.getElementById(colId);
-      col.innerHTML = '';
-      const inner = document.createElement('div');
-      inner.className = 'picker-col-inner';
-      items.forEach((item, i) => {
-        const div = document.createElement('div');
-        div.className = 'picker-item' + (i === selectedIndex ? ' selected' : '');
-        div.textContent = item;
-        inner.appendChild(div);
-      });
-      col.appendChild(inner);
- 
-      // スクロール位置を選択中アイテムに合わせる
-      col.scrollTop = selectedIndex * 44;
- 
-      // スクロールで選択
-      let scrollTimer = null;
-      col.addEventListener('scroll', () => {
-        clearTimeout(scrollTimer);
-        scrollTimer = setTimeout(() => {
-          const idx = Math.round(col.scrollTop / 44);
-          const clampedIdx = Math.max(0, Math.min(idx, items.length - 1));
-          col.scrollTop = clampedIdx * 44;
-          // ハイライト更新
-          inner.querySelectorAll('.picker-item').forEach((el, i) => {
-            el.className = 'picker-item' + (i === clampedIdx ? ' selected' : '');
-          });
-          onChange(items[clampedIdx]);
-        }, 100);
-      });
-    }
- 
-    function closePicker(apply) {
-      if (apply && pickerTarget) {
-        const hStr = String(pickerHour).padStart(2,'0');
-        const mStr = String(pickerMin).padStart(2,'0');
-        setTimeStore(pickerTarget, hStr, mStr);
-        const btn = document.getElementById(pickerTarget + 'Btn');
-        if (btn) {
-          btn.textContent = hStr + ':' + mStr;
-          btn.classList.remove('empty');
-        }
-      }
-      document.getElementById('pickerOverlay').style.display = 'none';
-      pickerTarget = null;
-    }
- 
-    function onOverlayClick(e) {
-      if (e.target === document.getElementById('pickerOverlay')) closePicker(false);
-    }
- 
-    // ===== 認証 =====
-    async function checkAuth() {
-      const name = document.getElementById('authName').value.trim();
-      const tel  = document.getElementById('authTel').value.trim();
-      if (!name) { alert('お名前を入力してください'); return; }
-      if (!tel)  { alert('電話番号を入力してください'); return; }
-      const btn = document.querySelector('#authScreen button');
-      btn.disabled = true; btn.textContent = '確認中...';
-      try {
-        const res  = await fetch(`${GAS_URL}?page=auth&name=${encodeURIComponent(name)}&tel=${encodeURIComponent(tel)}`);
-        const data = await res.json();
-        if (data.auth) {
-          document.getElementById('authScreen').style.display = 'none';
-          document.getElementById('mainContent').style.display = 'block';
-          document.getElementById('userName').value = name;
-          renderRows();
-        } else {
-          document.getElementById('authError').style.display = 'block';
-          btn.disabled = false; btn.textContent = '確認する';
-        }
-      } catch(err) {
-        alert('エラーが発生しました: ' + err);
-        btn.disabled = false; btn.textContent = '確認する';
-      }
-    }
- 
-    function getMonday(date) {
-      const d = new Date(date);
-      const day = d.getDay();
-      d.setDate(d.getDate() + (day === 0 ? -6 : 1 - day));
-      d.setHours(0,0,0,0);
-      return d;
-    }
-    function formatDate(date) { return (date.getMonth()+1) + '/' + date.getDate(); }
-    function formatDateFull(date) {
-      return date.getFullYear() + '/' + String(date.getMonth()+1).padStart(2,'0') + '/' + String(date.getDate()).padStart(2,'0');
-    }
-    function changeWeek(delta) { weekStart.setDate(weekStart.getDate() + delta * 7); renderRows(); }
- 
-    function onTemplateChange() {
-      const val = document.getElementById('templateSelect').value;
-      const row = document.getElementById('customTimeRow');
-      row.style.display = val === 'custom' ? 'flex' : 'none';
-    }
- 
-    function applyBulk(target) {
-      const template = document.getElementById('templateSelect').value;
-      if (!template) { alert('テンプレートを選択してください'); return; }
-      const isHoliday = template === 'holiday';
-      let startKey = null, endKey = null;
-      if (!isHoliday) {
-        if (template === 'custom') {
-          if (!getTimeStr('customStart') || !getTimeStr('customEnd')) {
-            alert('開始・終了時間を設定してください'); return;
-          }
-          startKey = 'customStart'; endKey = 'customEnd';
-        } else {
-          const parts = template.split('-');
-          const sh = parts[0].slice(0,2), sm = parts[0].slice(2);
-          const eh = parts[1].slice(0,2), em = parts[1].slice(2);
-          // 一時キーに保存
-          setTimeStore('_bulkStart', sh, sm);
-          setTimeStore('_bulkEnd',   eh, em);
-          startKey = '_bulkStart'; endKey = '_bulkEnd';
-        }
-      }
-      for (let i = 0; i < 7; i++) {
-        const date = new Date(weekStart);
-        date.setDate(weekStart.getDate() + i);
-        const dow = date.getDay();
-        const shouldApply =
-          target === 'all' ||
-          (target === 'weekday' && dow !== 0 && dow !== 6) ||
-          (target === 'weekend' && (dow === 0 || dow === 6));
-        if (!shouldApply) continue;
-        const holidaySelect = document.getElementById('holiday_' + i);
-        const startBtn = document.getElementById('start_' + i + 'Btn');
-        const endBtn   = document.getElementById('end_'   + i + 'Btn');
-        if (isHoliday) {
-          holidaySelect.value = '休み';
-          holidaySelect.className = 'holiday-select selected';
-          startBtn.classList.add('disabled'); endBtn.classList.add('disabled');
-          startBtn.textContent = '--:--'; endBtn.textContent = '--:--';
-          delete timeStore['start_'+i]; delete timeStore['end_'+i];
-        } else {
-          holidaySelect.value = ''; holidaySelect.className = 'holiday-select';
-          startBtn.classList.remove('disabled'); endBtn.classList.remove('disabled');
-          const sv = timeStore[startKey], ev = timeStore[endKey];
-          setTimeStore('start_'+i, sv.h, sv.m);
-          setTimeStore('end_'+i,   ev.h, ev.m);
-          startBtn.textContent = sv.h + ':' + sv.m;
-          endBtn.textContent   = ev.h + ':' + ev.m;
-          startBtn.classList.remove('empty'); endBtn.classList.remove('empty');
-        }
-      }
-    }
- 
-    function onHolidayChange(i) {
-      const select   = document.getElementById('holiday_' + i);
-      const startBtn = document.getElementById('start_' + i + 'Btn');
-      const endBtn   = document.getElementById('end_'   + i + 'Btn');
-      const isHoliday = select.value === '休み';
-      if (isHoliday) {
-        startBtn.classList.add('disabled'); endBtn.classList.add('disabled');
-        startBtn.textContent = '--:--'; endBtn.textContent = '--:--';
-        delete timeStore['start_'+i]; delete timeStore['end_'+i];
-        select.className = 'holiday-select selected';
-      } else {
-        startBtn.classList.remove('disabled'); endBtn.classList.remove('disabled');
-        select.className = 'holiday-select';
-      }
-    }
- 
-    function renderRows() {
-      const weekEnd = new Date(weekStart);
-      weekEnd.setDate(weekStart.getDate() + 6);
-      document.getElementById('weekLabel').textContent =
-        formatDate(weekStart) + '（月）〜' + formatDate(weekEnd) + '（日）';
-      // timeStoreの日別エントリをリセット
-      for (let i = 0; i < 7; i++) { delete timeStore['start_'+i]; delete timeStore['end_'+i]; }
-      const container = document.getElementById('dayRows');
-      container.innerHTML = '';
-      for (let i = 0; i < 7; i++) {
-        const date = new Date(weekStart);
-        date.setDate(weekStart.getDate() + i);
-        const dow = date.getDay();
-        const labelClass = dow === 0 ? 'day-label sun' : dow === 6 ? 'day-label sat' : 'day-label';
-        const row = document.createElement('div');
-        row.className = 'day-row';
-        row.innerHTML = `
-          <div class="${labelClass}">${formatDate(date)}<br>（${WEEKDAYS[dow]}）</div>
-          <div class="time-wrap">
-            <div class="time-label">開始</div>
-            <button class="time-display-btn empty" id="start_${i}Btn" onclick="openPicker('start_${i}','開始時間')">--:--</button>
-          </div>
-          <div class="time-wrap">
-            <div class="time-label">終了</div>
-            <button class="time-display-btn empty" id="end_${i}Btn" onclick="openPicker('end_${i}','終了時間')">--:--</button>
-          </div>
-          <div class="time-wrap">
-            <div class="time-label">状態</div>
-            <select class="holiday-select" id="holiday_${i}" onchange="onHolidayChange(${i})">
-              <option value="">-</option>
-              <option value="休み">休み</option>
-            </select>
-          </div>
-        `;
-        container.appendChild(row);
-      }
-    }
- 
-    async function sendShift() {
-      const userName = document.getElementById('userName').value.trim();
-      if (!userName) { alert('お名前を入力してください'); return; }
-      const entries = [];
-      for (let i = 0; i < 7; i++) {
-        const date    = new Date(weekStart);
-        date.setDate(weekStart.getDate() + i);
-        const holiday = document.getElementById('holiday_' + i).value;
-        const startStr = getTimeStr('start_' + i);
-        const endStr   = getTimeStr('end_'   + i);
-        if (holiday === '休み') {
-          entries.push({ date: formatDateFull(date), shift: '休み' });
-        } else if (startStr && endStr) {
-          entries.push({ date: formatDateFull(date), shift: startStr + '〜' + endStr });
-        }
-      }
-      if (entries.length === 0) { alert('少なくとも1日以上入力してください'); return; }
-      const btn = document.querySelector('button.is-success');
-      btn.disabled = true; btn.innerHTML = '<strong>送信中...</strong>';
-      try {
-        const res = await fetch(GAS_URL, {
-          method: 'POST',
-          body: JSON.stringify({ type: 'shiftNew', userName, entries, note: document.getElementById('note').value })
-        });
-        if (res.ok) {
-          alert('申請が完了しました！');
-          document.getElementById('note').value = '';
-          renderRows();
-        } else { throw new Error('サーバーエラー: ' + res.status); }
-      } catch(err) { alert('エラーが発生しました: ' + err); }
-      finally { btn.disabled = false; btn.innerHTML = '<strong>この内容で申請する</strong>'; }
-    }
-  </script>
+      <div class="time-wrap">
+        <div class="time-label">状態</div>
+        <button class="state-btn" id="state_${i}" onclick="toggleState(${i})">-</button>
+      </div>`;
+    c.appendChild(row);
+  }
+}
+
+async function sendShift() {
+  const userName=document.getElementById('userName').value.trim();
+  if (!userName) { alert('お名前を入力してください'); return; }
+  const entries=[];
+  for (let i=0;i<7;i++) {
+    const date=new Date(weekStart); date.setDate(weekStart.getDate()+i);
+    const isHoliday=document.getElementById('state_'+i).classList.contains('holiday');
+    const s=document.getElementById('start_'+i).value.trim();
+    const e=document.getElementById('end_'+i).value.trim();
+    if (isHoliday) { entries.push({date:fmtFull(date),shift:'休み'}); }
+    else if (s && e) { entries.push({date:fmtFull(date),shift:s+'〜'+e}); }
+  }
+  if (entries.length===0) { alert('少なくとも1日以上入力してください'); return; }
+  const btn=document.querySelector('button.is-success');
+  btn.disabled=true; btn.innerHTML='<strong>送信中...</strong>';
+  try {
+    const res=await fetch(GAS_URL,{method:'POST',body:JSON.stringify({type:'shiftNew',userName,entries,note:document.getElementById('note').value})});
+    if (res.ok) { alert('申請が完了しました！'); document.getElementById('note').value=''; renderRows(); }
+    else throw new Error('サーバーエラー: '+res.status);
+  } catch(err) { alert('エラー: '+err); }
+  finally { btn.disabled=false; btn.innerHTML='<strong>この内容で申請する</strong>'; }
+}
+</script>
 </body>
 </html>
