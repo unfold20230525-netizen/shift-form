@@ -13,10 +13,13 @@
     .balance-zero { background: #ffebee; border-color: #e53935; color: #e53935; }
     .user-info { text-align: right; font-size: 13px; color: #888; margin-bottom: 10px; }
     .logout-btn { font-size: 12px; color: #888; background: none; border: 1px solid #ddd; border-radius: 4px; padding: 2px 8px; cursor: pointer; }
+    .tmpl-btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+    .tmpl-btn { border: 1px solid #3273dc; background: white; color: #3273dc; border-radius: 6px; padding: 8px 14px; font-size: 13px; cursor: pointer; }
+    .tmpl-btn.active { background: #3273dc; color: white; }
   </style>
 </head>
 <body>
-
+ 
 <div id="authScreen" class="auth-screen" style="display:none">
   <div class="auth-card">
     <div style="font-size:40px;margin-bottom:1rem">🔐</div>
@@ -28,7 +31,7 @@
     <button class="button is-info is-fullwidth" onclick="checkAuth()">確認する</button>
   </div>
 </div>
-
+ 
 <div id="mainContent" style="display:none">
   <div class="user-info">
     <span id="displayName"></span>
@@ -48,12 +51,10 @@
       </div>
       <div class="field">
         <label class="label">種類</label>
-        <div class="select is-fullwidth">
-          <select id="kind" onchange="checkBalance()">
-            <option value="全休">全休</option>
-            <option value="午前半休">午前半休</option>
-            <option value="午後半休">午後半休</option>
-          </select>
+        <div class="tmpl-btns">
+          <button class="tmpl-btn active" onclick="selectKind('全休',this)">全休</button>
+          <button class="tmpl-btn" onclick="selectKind('午前半休',this)">午前半休</button>
+          <button class="tmpl-btn" onclick="selectKind('午後半休',this)">午後半休</button>
         </div>
       </div>
       <div class="field">
@@ -66,11 +67,19 @@
     </div>
   </div>
 </div>
-
+ 
 <script>
 const GAS_URL = "https://script.google.com/macros/s/AKfycbwCfBE-qtwwgyGSk6vPEnWhMu1Y6i2GKvVZ8Xj-3jc3o0QlK_Or1_z7-rhcWkioAcFv_g/exec";
 let currentBalance = 0;
-
+let selectedKind = '全休';
+ 
+function selectKind(kind, btn) {
+  selectedKind = kind;
+  document.querySelectorAll('.tmpl-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  updateBalanceBox();
+}
+ 
 window.onload = function() {
   const saved = localStorage.getItem('kintaiUser');
   if (saved) {
@@ -78,101 +87,97 @@ window.onload = function() {
     if (new Date().getTime() - data.loginTime < 24*60*60*1000) { showMain(data.name); return; }
     else localStorage.removeItem('kintaiUser');
   }
-  document.getElementById('authScreen').style.display='flex';
+  document.getElementById('authScreen').style.display = 'flex';
 };
-
+ 
 function logout() {
   localStorage.removeItem('kintaiUser');
-  document.getElementById('authScreen').style.display='flex';
-  document.getElementById('mainContent').style.display='none';
+  document.getElementById('authScreen').style.display = 'flex';
+  document.getElementById('mainContent').style.display = 'none';
 }
-
+ 
 async function checkAuth() {
-  const name=document.getElementById('authName').value.trim();
-  const tel=document.getElementById('authTel').value.trim();
-  if (!name){alert('お名前を入力してください');return;}
-  if (!tel){alert('電話番号を入力してください');return;}
-  const btn=document.querySelector('#authScreen button');
-  btn.disabled=true; btn.textContent='確認中...';
+  const name = document.getElementById('authName').value.trim();
+  const tel  = document.getElementById('authTel').value.trim();
+  if (!name) { alert('お名前を入力してください'); return; }
+  if (!tel)  { alert('電話番号を入力してください'); return; }
+  const btn = document.querySelector('#authScreen button');
+  btn.disabled = true; btn.textContent = '確認中...';
   try {
-    const res=await fetch(`${GAS_URL}?page=auth&name=${encodeURIComponent(name)}&tel=${encodeURIComponent(tel)}`);
-    const data=await res.json();
+    const res  = await fetch(`${GAS_URL}?page=auth&name=${encodeURIComponent(name)}&tel=${encodeURIComponent(tel)}`);
+    const data = await res.json();
     if (data.auth) {
-      localStorage.setItem('kintaiUser',JSON.stringify({name,tel,loginTime:new Date().getTime()}));
+      localStorage.setItem('kintaiUser', JSON.stringify({name, tel, loginTime: new Date().getTime()}));
       showMain(name);
     } else {
-      document.getElementById('authError').style.display='block';
-      btn.disabled=false; btn.textContent='確認する';
+      document.getElementById('authError').style.display = 'block';
+      btn.disabled = false; btn.textContent = '確認する';
     }
-  } catch(err){alert('エラー: '+err);btn.disabled=false;btn.textContent='確認する';}
+  } catch(err) { alert('エラー: '+err); btn.disabled=false; btn.textContent='確認する'; }
 }
-
+ 
 async function showMain(name) {
-  document.getElementById('authScreen').style.display='none';
-  document.getElementById('mainContent').style.display='block';
-  document.getElementById('userName').value=name;
-  document.getElementById('displayName').textContent=name+' さん';
+  document.getElementById('authScreen').style.display = 'none';
+  document.getElementById('mainContent').style.display = 'block';
+  document.getElementById('userName').value = name;
+  document.getElementById('displayName').textContent = name + ' さん';
   await loadBalance(name);
 }
-
+ 
 async function loadBalance(name) {
   try {
-    const res=await fetch(`${GAS_URL}?page=balance&name=${encodeURIComponent(name)}`);
-    const data=await res.json();
-    currentBalance=Number(data.balance)||0;
+    const res  = await fetch(`${GAS_URL}?page=balance&name=${encodeURIComponent(name)}`);
+    const data = await res.json();
+    currentBalance = Number(data.balance) || 0;
     updateBalanceBox();
-  } catch(err){ document.getElementById('balanceBox').textContent='残日数の取得に失敗しました'; }
+  } catch(err) { document.getElementById('balanceBox').textContent = '残日数の取得に失敗しました'; }
 }
-
+ 
 function updateBalanceBox() {
-  const box=document.getElementById('balanceBox');
-  const kind=document.getElementById('kind').value;
-  const required=kind==='全休'?1:0.5;
-  if (currentBalance<=0) {
-    box.className='balance-box balance-zero';
-    box.textContent='⚠️ 有給残日数が0日のため申請できません';
-    document.getElementById('submitBtn').disabled=true;
-  } else if (currentBalance<required) {
-    box.className='balance-box balance-zero';
-    box.textContent=`⚠️ 有給残日数が${currentBalance}日のため${kind}の申請ができません`;
-    document.getElementById('submitBtn').disabled=true;
+  const box = document.getElementById('balanceBox');
+  const required = selectedKind === '全休' ? 1 : 0.5;
+  if (currentBalance <= 0) {
+    box.className = 'balance-box balance-zero';
+    box.textContent = '⚠️ 有給残日数が0日のため申請できません';
+    document.getElementById('submitBtn').disabled = true;
+  } else if (currentBalance < required) {
+    box.className = 'balance-box balance-zero';
+    box.textContent = `⚠️ 有給残日数が${currentBalance}日のため${selectedKind}の申請ができません`;
+    document.getElementById('submitBtn').disabled = true;
   } else {
-    box.className='balance-box';
-    box.textContent=`🌿 有給残日数：${currentBalance}日`;
-    document.getElementById('submitBtn').disabled=false;
+    box.className = 'balance-box';
+    box.textContent = `🌿 有給残日数：${currentBalance}日`;
+    document.getElementById('submitBtn').disabled = false;
   }
 }
-
-function checkBalance(){ updateBalanceBox(); }
-
+ 
 async function sendKyuka() {
-  const userName=document.getElementById('userName').value.trim();
-  const applyDate=document.getElementById('applyDate').value.trim();
-  const kind=document.getElementById('kind').value;
-  const reason=document.getElementById('reason').value.trim();
-  const required=kind==='全休'?1:0.5;
-
-  if (!applyDate){alert('申請日を入力してください');return;}
-  if (!reason){alert('理由を入力してください');return;}
-  if (currentBalance<required){
+  const userName  = document.getElementById('userName').value.trim();
+  const applyDate = document.getElementById('applyDate').value.trim();
+  const reason    = document.getElementById('reason').value.trim();
+  const required  = selectedKind === '全休' ? 1 : 0.5;
+ 
+  if (!applyDate) { alert('申請日を入力してください'); return; }
+  if (!reason)    { alert('理由を入力してください'); return; }
+  if (currentBalance < required) {
     alert(`⚠️ 有給残日数が不足しています。\n現在の残日数：${currentBalance}日\n申請に必要な日数：${required}日`);
     return;
   }
-
-  const btn=document.getElementById('submitBtn');
-  btn.disabled=true; btn.innerHTML='<strong>送信中...</strong>';
+ 
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true; btn.innerHTML = '<strong>送信中...</strong>';
   try {
-    const res=await fetch(GAS_URL,{method:'POST',body:JSON.stringify({type:'kyukaRequest',userName,date:applyDate,kind,reason})});
+    const res = await fetch(GAS_URL, {method:'POST', body:JSON.stringify({type:'kyukaRequest', userName, date:applyDate, kind:selectedKind, reason})});
     if (res.ok) {
-      alert('申請が完了しました！\n名前：'+userName+'\n日付：'+applyDate+'\n種類：'+kind);
-      document.getElementById('reason').value='';
-      document.getElementById('applyDate').value='';
-      currentBalance-=required;
+      alert('申請が完了しました！\n名前：'+userName+'\n日付：'+applyDate+'\n種類：'+selectedKind);
+      document.getElementById('reason').value = '';
+      document.getElementById('applyDate').value = '';
+      currentBalance -= required;
       updateBalanceBox();
     } else throw new Error('サーバーエラー: '+res.status);
-  } catch(err){
+  } catch(err) {
     alert('エラー: '+err);
-    btn.disabled=false; btn.innerHTML='<strong>この内容で申請する</strong>';
+    btn.disabled = false; btn.innerHTML = '<strong>この内容で申請する</strong>';
   }
 }
 </script>
