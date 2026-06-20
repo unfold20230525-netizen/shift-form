@@ -1,28 +1,27 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>勤怠打刻</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
-  <style>
-    body { padding: 15px; background: #f5f5f5; }
-    .auth-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
-    .auth-card { background: white; border-radius: 12px; padding: 2rem; width: 100%; max-width: 400px; text-align: center; }
-    .btn-kintai { width: 100%; padding: 20px; font-size: 18px; font-weight: bold; border-radius: 12px; border: none; cursor: pointer; margin-bottom: 12px; color: white; }
-    .btn-syukkin { background: #2ecc71; }
-    .btn-taikin  { background: #e74c3c; }
-    .btn-kyukei-start { background: #f39c12; }
-    .btn-kyukei-end   { background: #3498db; }
-    .btn-kintai:disabled { background: #bdc3c7; cursor: not-allowed; }
-    .status-box { background: white; border-radius: 12px; padding: 15px; margin-bottom: 15px; text-align: center; }
-    .status-text { font-size: 16px; font-weight: bold; }
-    .error-box { background: #ffebee; border: 1px solid #e53935; border-radius: 8px; padding: 10px; margin-bottom: 10px; color: #e53935; font-size: 13px; display: none; }
-    .success-box { background: #e8f5e9; border: 1px solid #43a047; border-radius: 8px; padding: 10px; margin-bottom: 10px; color: #43a047; font-size: 13px; display: none; }
-    .user-info { text-align: right; font-size: 13px; color: #888; margin-bottom: 10px; }
-    .logout-btn { font-size: 12px; color: #888; background: none; border: 1px solid #ddd; border-radius: 4px; padding: 2px 8px; cursor: pointer; }
-    .rounded-time { font-size: 12px; color: #888; margin-top: 4px; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>勤怠打刻</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+<style>
+  body { padding: 15px; background: #f5f5f5; }
+  .auth-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+  .auth-card { background: white; border-radius: 12px; padding: 2rem; width: 100%; max-width: 400px; text-align: center; }
+  .btn-kintai { width: 100%; padding: 20px; font-size: 18px; font-weight: bold; border-radius: 12px; border: none; cursor: pointer; margin-bottom: 12px; color: white; }
+  .btn-syukkin { background: #2ecc71; }
+  .btn-taikin  { background: #e74c3c; }
+  .btn-kyukei-start { background: #f39c12; }
+  .btn-kyukei-end   { background: #3498db; }
+  .btn-kintai:disabled { background: #bdc3c7; cursor: not-allowed; }
+  .status-box { background: white; border-radius: 12px; padding: 15px; margin-bottom: 15px; text-align: center; }
+  .status-text { font-size: 16px; font-weight: bold; }
+  .error-box { background: #ffebee; border: 1px solid #e53935; border-radius: 8px; padding: 10px; margin-bottom: 10px; color: #e53935; font-size: 13px; display: none; }
+  .success-box { background: #e8f5e9; border: 1px solid #43a047; border-radius: 8px; padding: 10px; margin-bottom: 10px; color: #43a047; font-size: 13px; display: none; }
+  .user-info { text-align: right; font-size: 13px; color: #888; margin-bottom: 10px; }
+  .logout-btn { font-size: 12px; color: #888; background: none; border: 1px solid #ddd; border-radius: 4px; padding: 2px 8px; cursor: pointer; }
+</style>
 </head>
 <body>
 
@@ -70,22 +69,18 @@
     </button>
 
     <p style="font-size:11px;color:#aaa;text-align:center;margin-top:15px">
-      ※打刻時に位置情報を取得します。会社から300m以内でないと打刻できません。
+      ※打刻時に位置情報を記録します。
     </p>
   </div>
 
   <script>
     const GAS_URL = "https://script.google.com/macros/s/AKfycbwCfBE-qtwwgyGSk6vPEnWhMu1Y6i2GKvVZ8Xj-3jc3o0QlK_Or1_z7-rhcWkioAcFv_g/exec";
-    const COMPANY_LAT = 37.1461;
-    const COMPANY_LNG = 140.2491;
-    const MAX_DISTANCE = 1000;
-    const MAX_ACCURACY = 200;
     const MIN_INTERVAL = 5 * 60 * 1000; // 5分
 
     let currentUser = null;
 
     // =============================================
-    // 【修正箇所】30分丸め関数
+    // 30分丸め関数
     // 開始系（出勤・休憩終了）→ 切り上げ
     // 終了系（退勤・休憩開始）→ 切り捨て
     // =============================================
@@ -93,8 +88,8 @@
       const isStart = (type === '出勤' || type === '休憩終了');
       const minutes = date.getMinutes();
       const roundedMinutes = isStart
-        ? Math.ceil(minutes / 30) * 30   // 切り上げ
-        : Math.floor(minutes / 30) * 30; // 切り捨て
+        ? Math.ceil(minutes / 30) * 30
+        : Math.floor(minutes / 30) * 30;
 
       const result = new Date(date);
       result.setSeconds(0);
@@ -112,7 +107,6 @@
     function formatTime(date) {
       return date.getHours() + ':' + String(date.getMinutes()).padStart(2, '0');
     }
-    // =============================================
 
     // 起動時にlocalStorageを確認
     window.onload = function() {
@@ -179,7 +173,6 @@
       const statusEl  = document.getElementById('currentStatus');
       if (lastPunch) {
         const data = JSON.parse(lastPunch);
-        // 【修正箇所】丸め後の時間も表示
         statusEl.innerHTML = `${data.type}（実打刻：${data.actualTime} → 記録：${data.roundedTime}）`;
       } else {
         statusEl.textContent = '未打刻';
@@ -212,16 +205,6 @@
       setTimeout(() => { el.style.display = 'none'; }, 5000);
     }
 
-    function calcDistance(lat1, lng1, lat2, lng2) {
-      const R = 6371000;
-      const dLat = (lat2 - lat1) * Math.PI / 180;
-      const dLng = (lng2 - lng1) * Math.PI / 180;
-      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                Math.sin(dLng/2) * Math.sin(dLng/2);
-      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    }
-
     async function doPunch(type) {
       // 連続打刻チェック
       const lastPunch = localStorage.getItem('lastPunch_' + currentUser.name);
@@ -241,10 +224,10 @@
       showError('');
       document.getElementById('currentStatus').textContent = '位置情報を取得中...';
 
-      // 位置情報取得
+      // 位置情報取得（記録用のみ・距離チェックは行わない）
       if (!navigator.geolocation) {
-        showError('このブラウザは位置情報に対応していません');
-        updateButtons();
+        // 位置情報が使えない場合も打刻は継続する
+        await submitPunch(type, null, null, null);
         return;
       }
 
@@ -253,103 +236,80 @@
           const lat      = position.coords.latitude;
           const lng      = position.coords.longitude;
           const accuracy = position.coords.accuracy;
-
-          // 精度チェック
-          if (accuracy > MAX_ACCURACY) {
-            showError(`位置情報の精度が低すぎます（誤差${Math.round(accuracy)}m）。屋外に出て再度お試しください。`);
-            updateStatus();
-            return;
-          }
-
-          // 距離チェック
-          const distance = calcDistance(lat, lng, COMPANY_LAT, COMPANY_LNG);
-          if (distance > MAX_DISTANCE) {
-            showError(`会社から離れすぎています（${Math.round(distance)}m）。会社の近くで打刻してください。`);
-            updateStatus();
-            return;
-          }
-
-          // GASに送信
-          try {
-            const now = new Date();
-
-            // 【修正箇所】実打刻時間と丸め後の時間を両方取得
-            const actualTime  = formatTime(now);
-            const rounded     = roundTime(now, type);
-            const roundedTime = formatTime(rounded);
-
-            // 逆ジオコーディングで住所取得
-            let address = '';
-            let zip = '';
-            try {
-              const geoRes = await fetch(
-                `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=ja`,
-                { headers: { 'User-Agent': 'UNFOLD-kintai-app' } }
-              );
-              const geoData = await geoRes.json();
-              if (geoData && geoData.address) {
-                const a = geoData.address;
-                zip = a.postcode || '';
-                address = (a.province || '') + (a.city || '') + (a.suburb || '') + (a.neighbourhood || '') + (a.road || '') + (a.house_number || '');
-              }
-            } catch(e) {
-              console.log('住所取得失敗:', e);
-            }
-
-            // 【修正箇所】actualTime（実打刻）とroundedTime（丸め後）を両方送信
-            const res = await fetch(GAS_URL, {
-              method: 'POST',
-              body: JSON.stringify({
-                type: 'kintaiRequest',
-                userName: currentUser.name,
-                punchType: type,
-                latitude: lat,
-                longitude: lng,
-                accuracy: Math.round(accuracy),
-                address: address,
-                zip: zip,
-                actualTime: actualTime,
-                roundedTime: roundedTime
-              })
-            });
-
-            if (res.ok) {
-              const punchData = {
-                type: type,
-                actualTime: actualTime,
-                roundedTime: roundedTime,
-                timestamp: now.getTime()
-              };
-              localStorage.setItem('lastPunch_' + currentUser.name, JSON.stringify(punchData));
-              // 【修正箇所】成功メッセージに実打刻と丸め後の時間を表示
-              showSuccess(`【${type}】を記録しました！\n実打刻：${actualTime} → 記録時間：${roundedTime}`);
-              updateStatus();
-            } else {
-              showError('送信に失敗しました。再度お試しください。');
-              updateStatus();
-            }
-          } catch(err) {
-            showError('通信エラーが発生しました: ' + err);
-            updateStatus();
-          }
+          await submitPunch(type, lat, lng, accuracy);
         },
-        (error) => {
-          switch(error.code) {
-            case error.PERMISSION_DENIED:
-              showError('位置情報の使用が拒否されています。ブラウザの設定を確認してください。');
-              break;
-            case error.POSITION_UNAVAILABLE:
-              showError('位置情報を取得できませんでした。');
-              break;
-            case error.TIMEOUT:
-              showError('位置情報の取得がタイムアウトしました。');
-              break;
-          }
-          updateStatus();
+        async (error) => {
+          // 位置情報取得に失敗しても打刻は継続する
+          console.log('位置情報取得失敗: ' + error.message);
+          await submitPunch(type, null, null, null);
         },
         { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
       );
     }
+
+    async function submitPunch(type, lat, lng, accuracy) {
+      try {
+        const now = new Date();
+        const actualTime  = formatTime(now);
+        const rounded     = roundTime(now, type);
+        const roundedTime = formatTime(rounded);
+
+        // 逆ジオコーディングで住所取得（位置情報が取得できた場合のみ）
+        let address = '';
+        let zip = '';
+        if (lat !== null && lng !== null) {
+          try {
+            const geoRes = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=ja`,
+              { headers: { 'User-Agent': 'UNFOLD-kintai-app' } }
+            );
+            const geoData = await geoRes.json();
+            if (geoData && geoData.address) {
+              const a = geoData.address;
+              zip = a.postcode || '';
+              address = (a.province || '') + (a.city || '') + (a.suburb || '') + (a.neighbourhood || '') + (a.road || '') + (a.house_number || '');
+            }
+          } catch(e) {
+            console.log('住所取得失敗:', e);
+          }
+        }
+
+        const res = await fetch(GAS_URL, {
+          method: 'POST',
+          body: JSON.stringify({
+            type: 'kintaiRequest',
+            userName: currentUser.name,
+            punchType: type,
+            latitude: lat,
+            longitude: lng,
+            accuracy: accuracy !== null ? Math.round(accuracy) : '',
+            address: address,
+            zip: zip,
+            actualTime: actualTime,
+            roundedTime: roundedTime
+          })
+        });
+
+        if (res.ok) {
+          const punchData = {
+            type: type,
+            actualTime: actualTime,
+            roundedTime: roundedTime,
+            timestamp: now.getTime()
+          };
+          localStorage.setItem('lastPunch_' + currentUser.name, JSON.stringify(punchData));
+          showSuccess(`【${type}】を記録しました！\n実打刻：${actualTime} → 記録時間：${roundedTime}`);
+          updateStatus();
+        } else {
+          showError('送信に失敗しました。再度お試しください。');
+          updateStatus();
+        }
+      } catch(err) {
+        showError('通信エラーが発生しました: ' + err);
+        updateStatus();
+      }
+    }
   </script>
 </body>
+</html>
 </html>
