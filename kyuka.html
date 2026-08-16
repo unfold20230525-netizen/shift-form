@@ -5,29 +5,107 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>有給申請</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
   <style>
-    body { padding: 15px; background: #f5f5f5; }
+    :root {
+      --navy: #16324F; --navy-hover: #1E4468; --navy-active: #0F2438;
+      --sky: #4FA3D1; --sky-dark: #3A87B5; --sky-bg: #EAF4FA; --sky-border: #B9DDEE;
+      --beige: #F5F0E6; --white: #FFFFFF;
+      --gray-100: #F7F6F3; --gray-200: #E7E3DA; --gray-300: #D8D3C8;
+      --gray-500: #8A8A85; --gray-700: #5B5B57; --text-main: #2B2B28; --text-body: #2B2B28;
+      --disabled-bg: #D8D3C8; --disabled-text: #8A8A85;
+      --error-bg: #FBEAEA; --error-text: #B3261E; --error-border: #E9B7B4;
+      --radius-sm: 10px; --radius-md: 16px; --radius-lg: 24px;
+      --shadow-card: 0 4px 24px rgba(22,50,79,0.08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      background: var(--beige); color: var(--text-body); padding: 20px 16px 40px; -webkit-font-smoothing: antialiased;
+    }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+ 
     .auth-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
-    .auth-card { background: white; border-radius: 12px; padding: 2rem; width: 100%; max-width: 400px; text-align: center; }
-    .balance-box { background: #fffde7; border: 1px solid #f9a825; border-radius: 8px; padding: 10px 15px; margin-bottom: 15px; text-align: center; font-size: 15px; }
-    .balance-zero { background: #ffebee; border-color: #e53935; color: #e53935; }
-    .user-info { text-align: right; font-size: 13px; color: #888; margin-bottom: 10px; }
-    .logout-btn { font-size: 12px; color: #888; background: none; border: 1px solid #ddd; border-radius: 4px; padding: 2px 8px; cursor: pointer; }
-    .tmpl-btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
-    .tmpl-btn { border: 1px solid #3273dc; background: white; color: #3273dc; border-radius: 6px; padding: 8px 14px; font-size: 13px; cursor: pointer; }
-    .tmpl-btn.active { background: #3273dc; color: white; }
+    .auth-card {
+      background: var(--white); border-radius: var(--radius-lg); padding: 2.5rem 2rem; width: 100%;
+      max-width: 400px; text-align: center; box-shadow: var(--shadow-card); animation: fadeIn .3s ease-out;
+    }
+    .auth-icon { width: 60px; height: 60px; border-radius: 50%; background: var(--sky-bg); display: flex; align-items: center; justify-content: center; font-size: 26px; margin: 0 auto 1rem; }
+    .auth-card h2 { color: var(--navy); font-weight: 700; margin-bottom: 0.35rem; font-size: 1.3rem; }
+    .brand-tag { display: block; font-size: 11px; letter-spacing: 0.12em; color: var(--sky-dark); font-weight: 700; margin-bottom: 1rem; text-transform: uppercase; }
+    .auth-card p.lead { color: var(--gray-700); font-size: 13px; margin-bottom: 1.5rem; }
+    #authError { background: var(--error-bg); border: 1px solid var(--error-border); color: var(--error-text) !important; border-radius: 8px; padding: 8px 10px; }
+ 
+    .input, .textarea {
+      background: var(--white); border: 1px solid var(--gray-300); border-radius: 8px;
+      font-size: 16px; padding: 12px 14px; color: var(--text-main);
+      transition: border-color .15s ease, box-shadow .15s ease;
+    }
+    .input::placeholder, .textarea::placeholder { color: var(--gray-500); }
+    .input:focus, .textarea:focus { border-color: var(--sky); box-shadow: 0 0 0 3px rgba(79,163,209,0.18); outline: none; }
+    .input[readonly] { background: var(--gray-100); color: var(--gray-700); }
+    .label { color: var(--navy); font-weight: 700; font-size: 13px; }
+ 
+    .button.is-info {
+      background: var(--navy); border: none; font-weight: 700; border-radius: var(--radius-sm); height: auto;
+      padding: 13px 14px; font-size: 15px; transition: background-color .15s ease, transform .1s ease, box-shadow .15s ease;
+    }
+    .button.is-info:hover { background: var(--navy-hover); transform: translateY(-1px); box-shadow: 0 4px 10px rgba(22,58,95,0.14); }
+    .button.is-info:active { background: var(--navy-active); transform: translateY(0) scale(0.99); box-shadow: none; }
+ 
+    #mainContent { max-width: 480px; margin: 0 auto; }
+    .user-info { display: flex; align-items: center; justify-content: flex-end; gap: 10px; font-size: 13px; color: var(--gray-700); margin-bottom: 10px; }
+    .logout-btn {
+      font-size: 12px; color: var(--navy); background: var(--white); border: 1px solid var(--gray-300);
+      border-radius: 6px; padding: 4px 10px; cursor: pointer; transition: background-color .15s ease;
+    }
+    .logout-btn:hover { background: var(--sky-bg); border-color: var(--sky); }
+ 
+    .card { border-radius: var(--radius-lg); box-shadow: var(--shadow-card); border: none; animation: fadeIn .3s ease-out; }
+    .card-content { padding: 2rem 1.6rem; }
+    .page-title { text-align: center; margin-bottom: 20px !important; }
+    .page-title .brand-tag { margin-bottom: 4px; }
+    .page-title h2 { color: var(--navy); font-weight: 900 !important; font-size: 1.3rem; }
+    .title-rule { width: 40px; height: 3px; background: var(--sky); border-radius: 2px; margin: 10px auto 0; }
+ 
+    .balance-box {
+      background: var(--sky-bg); border: 1px solid #B9DDEE; color: #1B6C93; border-radius: var(--radius-md);
+      padding: 14px 15px; margin-bottom: 18px; text-align: center; font-size: 15px; font-weight: 700;
+    }
+    .balance-zero { background: var(--error-bg); border-color: var(--error-border); color: var(--error-text); }
+ 
+    .tmpl-btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+    .tmpl-btn {
+      border: 1px solid var(--navy); background: var(--white); color: var(--navy); border-radius: var(--radius-sm);
+      padding: 9px 16px; font-size: 13px; cursor: pointer; transition: background-color .15s ease, color .15s ease, transform .1s ease;
+    }
+    .tmpl-btn:hover { background: var(--sky-bg); transform: translateY(-1px); }
+    .tmpl-btn:active { transform: translateY(0) scale(0.98); }
+    .tmpl-btn.active { background: var(--sky); color: white; border-color: var(--sky); }
+ 
+    .button.is-warning {
+      background: var(--navy); border: none; color: white; font-weight: 700; border-radius: var(--radius-sm);
+      height: auto; padding: 16px; font-size: 15px; min-height: 56px;
+      transition: background-color .15s ease, transform .1s ease, box-shadow .15s ease;
+    }
+    .button.is-warning:hover { background: var(--navy-hover); transform: translateY(-1px); box-shadow: 0 4px 10px rgba(22,58,95,0.14); }
+    .button.is-warning:active { transform: translateY(0) scale(0.99); box-shadow: none; }
+    .button.is-warning[disabled] { background: var(--disabled-bg); color: var(--disabled-text); }
   </style>
 </head>
 <body>
  
 <div id="authScreen" class="auth-screen" style="display:none">
   <div class="auth-card">
-    <div style="font-size:40px;margin-bottom:1rem">🔐</div>
-    <h2 style="font-weight:bold;margin-bottom:0.5rem">スタッフ認証</h2>
-    <p style="color:#888;font-size:13px;margin-bottom:1.5rem">お名前と電話番号を入力してください</p>
+    <div class="auth-icon">🔐</div>
+    <span class="brand-tag">ATTENDANCE MANAGEMENT</span>
+    <h2>スタッフ認証</h2>
+    <p class="lead">お名前と電話番号を入力してください</p>
     <input class="input" type="text" id="authName" placeholder="例：山田太郎" style="margin-bottom:0.75rem">
     <input class="input" type="tel" id="authTel" placeholder="例：09012345678" style="margin-bottom:1rem">
-    <div id="authError" style="color:red;font-size:13px;margin-bottom:0.5rem;display:none">名前または電話番号が一致しません。</div>
+    <div id="authError" style="font-size:13px;margin-bottom:0.5rem;display:none">名前または電話番号が一致しません。</div>
     <button class="button is-info is-fullwidth" onclick="checkAuth()">確認する</button>
   </div>
 </div>
@@ -39,11 +117,15 @@
   </div>
   <div class="card">
     <div class="card-content">
-      <h2 style="font-weight:bold;text-align:center;margin-bottom:20px">🌴 有給申請フォーム</h2>
+      <div class="page-title">
+        <span class="brand-tag">勤怠管理システム</span>
+        <h2>有給申請フォーム</h2>
+        <div class="title-rule"></div>
+      </div>
       <div id="balanceBox" class="balance-box">有給残日数を取得中...</div>
       <div class="field">
         <label class="label">お名前</label>
-        <input class="input" type="text" id="userName" readonly style="background:#f5f5f5">
+        <input class="input" type="text" id="userName" readonly>
       </div>
       <div class="field">
         <label class="label">申請日</label>
