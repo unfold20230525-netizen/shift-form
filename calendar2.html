@@ -83,6 +83,18 @@
     .legend-item { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--gray-700); }
     .legend-dot { width: 10px; height: 10px; border-radius: 3px; }
  
+    /* 一括確認ボタン */
+    .bulk-confirm-wrap { margin-bottom: 1.2rem; text-align: center; }
+    .bulk-confirm-btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      background: #4C8C6B; color: white; border: none; border-radius: var(--radius-sm);
+      padding: 12px 18px; font-size: 14px; font-weight: 700; cursor: pointer; min-height: 46px;
+      box-shadow: var(--shadow-card); transition: background-color .15s ease, transform .1s ease;
+    }
+    .bulk-confirm-btn:hover { background: #578F6F; transform: translateY(-1px); }
+    .bulk-confirm-btn:active { background: #3F7358; transform: translateY(0) scale(0.99); }
+    .bulk-confirm-btn:disabled { background: var(--disabled-bg); color: var(--disabled-text); }
+ 
     .cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
     .cal-title { font-size: 16px; font-weight: 700; color: var(--navy); }
     .nav-btn {
@@ -156,7 +168,55 @@
     }
     .confirm-btn:hover { background: #578F6F; transform: translateY(-1px); box-shadow: 0 4px 10px rgba(76,140,107,0.2); }
     .confirm-btn:active { background: #3F7358; transform: translateY(0) scale(0.99); box-shadow: none; }
+    .confirm-btn:disabled { background: var(--disabled-bg); color: var(--disabled-text); }
     .confirmed-mark { text-align: center; padding: 10px; font-size: 14px; color: var(--success-text); font-weight: 700; background: var(--success-bg); border-radius: 8px; margin-top: 10px; }
+ 
+    /* キャンセルボタン（一括確認ポップアップ用） */
+    .cancel-btn {
+      width: 100%; padding: 13px; font-size: 15px; font-weight: 700; border-radius: var(--radius-sm);
+      border: 1px solid var(--gray-300); cursor: pointer; background: var(--white); color: var(--gray-700);
+      transition: background-color .15s ease;
+    }
+    .cancel-btn:hover { background: var(--gray-100); }
+    .bulk-warning { font-size: 13px; color: var(--error-text); font-weight: 700; margin-top: 6px; }
+    .btn-row { display: flex; gap: 8px; margin-top: 14px; }
+    .btn-row > * { flex: 1; margin-top: 0; }
+ 
+    /* ===== モバイル対応（Android / iPhone） ===== */
+    @media (max-width: 480px) {
+      body { padding: 14px 8px 30px; }
+      .page-title h2 { font-size: 1.15rem; }
+      .view-btn { padding: 7px 16px; font-size: 13px; }
+      .legend { gap: 8px; padding: 8px 10px; }
+      .legend-item { font-size: 10.5px; }
+      .legend-dot { width: 9px; height: 9px; }
+      .bulk-confirm-btn { font-size: 13px; padding: 11px 14px; width: 100%; }
+      .cal-title { font-size: 14px; }
+      .nav-btn { width: 30px; height: 30px; font-size: 13px; }
+      .cal-grid { gap: 4px; }
+      .cal-dow { font-size: 10px; padding: 3px 0; }
+      .cal-day { min-height: 64px; padding: 4px 3px; border-radius: 8px; }
+      .cal-date { font-size: 9.5px; margin-bottom: 2px; }
+      .shift-badge { font-size: 9px; padding: 2px 2px; margin-bottom: 1px; border-radius: 4px; }
+      .status-badge { font-size: 7.5px; padding: 1px 2px; }
+      .week-grid { gap: 4px; }
+      .day-card { min-height: 92px; padding: 7px 3px; }
+      .day-name { font-size: 9.5px; }
+      .day-num { font-size: 13px; margin-bottom: 4px; }
+      .today-circle { width: 22px; height: 22px; font-size: 11px; margin-bottom: 4px; }
+      .shift-block { font-size: 10.5px; padding: 3px; }
+      .no-shift { font-size: 9.5px; }
+      .detail-card { padding: 1.3rem; }
+    }
+    @media (max-width: 360px) {
+      .cal-grid { gap: 3px; }
+      .cal-day { min-height: 58px; padding: 3px 2px; }
+      .cal-date { font-size: 9px; }
+      .shift-badge { font-size: 8px; }
+      .status-badge { font-size: 7px; }
+      .day-card { min-height: 84px; padding: 6px 2px; }
+      .shift-block { font-size: 9.5px; }
+    }
   </style>
 </head>
 <body>
@@ -196,6 +256,12 @@
         <div class="legend-item"><div class="legend-dot" style="background:#E7F2EA;border:1px solid #2F6B46"></div>確定</div>
         <div class="legend-item"><div class="legend-dot" style="background:#EAF4FA;border:1px solid #1B6C93"></div>時間修正確定</div>
         <div class="legend-item"><div class="legend-dot" style="background:#FBEAEA;border:1px solid #B3261E"></div>キャンセル</div>
+      </div>
+      <!-- 一括確認ボタン（未確認のシフトがある場合のみ表示） -->
+      <div id="bulkConfirmArea" class="bulk-confirm-wrap" style="display:none">
+        <button class="bulk-confirm-btn" id="bulkConfirmBtn" onclick="openBulkConfirm()">
+          👍 未確認シフトをまとめて確認する（<span id="bulkCount">0</span>件）
+        </button>
       </div>
       <div class="cal-header">
         <button class="nav-btn" onclick="changePeriod(-1)">＜</button>
@@ -240,6 +306,23 @@
       </div>
       <!-- 了解ボタン or 確認済みマーク -->
       <div id="detailConfirmArea"></div>
+    </div>
+  </div>
+  <!-- 一括確認 確認ポップアップ -->
+  <div id="bulkOverlay" class="detail-overlay" style="display:none;" onclick="closeBulkOverlay(event)">
+    <div class="detail-card" onclick="event.stopPropagation()">
+      <div class="detail-header">
+        <div class="detail-title">一括確認</div>
+        <button class="detail-close" onclick="closeBulkOverlay()">✕</button>
+      </div>
+      <p style="font-size:14px; line-height:1.7; color:var(--text-main); margin:4px 0 0;">
+        未確認のシフト <strong id="bulkOverlayCount">0</strong>件を、まとめて「了解しました」にします。
+      </p>
+      <p class="bulk-warning">お間違いないですか？</p>
+      <div class="btn-row">
+        <button class="cancel-btn" onclick="closeBulkOverlay()">キャンセル</button>
+        <button class="confirm-btn" id="bulkExecBtn" onclick="executeBulkConfirm()">実行する</button>
+      </div>
     </div>
   </div>
   <script>
@@ -362,7 +445,10 @@
       }
       render();
     }
-    function render() { view === 'month' ? renderMonth() : renderWeek(); }
+    function render() {
+      view === 'month' ? renderMonth() : renderWeek();
+      updateBulkConfirmArea();
+    }
     // ステータスに応じたバッジHTMLを返す
     function getStatusBadgeHtml(status, cls) {
       const info = STATUS_INFO[status] || STATUS_INFO[0];
@@ -443,6 +529,63 @@
       } catch(err) {
         alert('通信エラー: ' + err);
         if (btn) { btn.disabled = false; btn.textContent = '👍 了解しました'; }
+      }
+    }
+    // ===== 一括確認 =====
+    // 確定 or 時間修正確定 かつ 未確認 のシフト一覧を返す
+    function getUnconfirmedList() {
+      return Object.keys(shiftData).filter(key => {
+        const d = shiftData[key];
+        return (d.status === 1 || d.status === 3) && d.staffConfirm !== 1;
+      });
+    }
+    function updateBulkConfirmArea() {
+      const list = getUnconfirmedList();
+      const area = document.getElementById('bulkConfirmArea');
+      document.getElementById('bulkCount').textContent = list.length;
+      area.style.display = list.length > 0 ? 'block' : 'none';
+    }
+    function openBulkConfirm() {
+      const list = getUnconfirmedList();
+      if (list.length === 0) return;
+      document.getElementById('bulkOverlayCount').textContent = list.length;
+      document.getElementById('bulkOverlay').style.display = 'flex';
+    }
+    function closeBulkOverlay(event) {
+      if (!event || event.target === document.getElementById('bulkOverlay')) {
+        document.getElementById('bulkOverlay').style.display = 'none';
+      }
+    }
+    // 「実行する」を押したときにまとめて了解済みにする
+    async function executeBulkConfirm() {
+      const list = getUnconfirmedList();
+      if (list.length === 0) { closeBulkOverlay(); return; }
+      const btn = document.getElementById('bulkExecBtn');
+      btn.disabled = true;
+      btn.textContent = '処理中...';
+      let successCount = 0;
+      for (const key of list) {
+        try {
+          const res = await fetch(GAS_URL, {
+            method: 'POST',
+            body: JSON.stringify({ type: 'shiftConfirm', userName: currentName, date: key })
+          });
+          if (res.ok) {
+            shiftData[key].staffConfirm = 1;
+            successCount++;
+          }
+        } catch(err) {
+          console.error(err);
+        }
+      }
+      btn.disabled = false;
+      btn.textContent = '実行する';
+      document.getElementById('bulkOverlay').style.display = 'none';
+      render();
+      if (successCount === list.length) {
+        alert(`${successCount}件のシフトを確認しました。`);
+      } else {
+        alert(`${successCount}/${list.length}件のシフトを確認しました。\n一部通信エラーが発生した可能性があります。`);
       }
     }
     function renderMonth() {
@@ -537,3 +680,4 @@
   </script>
 </body>
 </html>
+ 
