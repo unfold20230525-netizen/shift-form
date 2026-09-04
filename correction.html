@@ -86,6 +86,13 @@
     }
     .button.is-warning:hover { background: var(--navy-hover); transform: translateY(-1px); box-shadow: 0 4px 10px rgba(22,58,95,0.14); }
     .button.is-warning:active { transform: translateY(0) scale(0.99); box-shadow: none; }
+ 
+    /* 数字のみの日付・時間入力 */
+    .date-input-row { display: flex; align-items: center; gap: 6px; }
+    .date-part-y { flex: 1.5; min-width: 0; text-align: center; padding-left: 6px; padding-right: 6px; }
+    .date-part-s { flex: 1; min-width: 0; text-align: center; padding-left: 6px; padding-right: 6px; }
+    .date-unit { font-size: 13px; color: var(--gray-700); flex-shrink: 0; }
+    .hint-text { font-size: 11.5px; color: var(--gray-500); margin: 4px 0 8px; line-height: 1.5; }
   </style>
 </head>
 <body>
@@ -122,7 +129,14 @@
       </div>
       <div class="field">
         <label class="label">勤務日</label>
-        <input class="input" type="text" id="workDate" placeholder="例：2026/06/11">
+        <div class="date-input-row">
+          <input class="input date-part-y" type="text" id="workYear" placeholder="2026" inputmode="numeric" pattern="[0-9]*" maxlength="4" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+          <span class="date-unit">年</span>
+          <input class="input date-part-s" type="text" id="workMonth" placeholder="6" inputmode="numeric" pattern="[0-9]*" maxlength="2" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+          <span class="date-unit">月</span>
+          <input class="input date-part-s" type="text" id="workDay" placeholder="11" inputmode="numeric" pattern="[0-9]*" maxlength="2" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+          <span class="date-unit">日</span>
+        </div>
       </div>
       <div class="field">
         <label class="label">修正種別</label>
@@ -132,18 +146,51 @@
           <button class="tmpl-btn" id="type_勤務日" onclick="selectType('勤務日',this)">勤務日</button>
         </div>
       </div>
-      <div class="field" id="timeField">
+ 
+      <!-- 修正前 -->
+      <div class="field" id="beforeTimeField">
+        <label class="label">修正前の時間</label>
+        <p class="hint-text">24時間表記でご入力ください（例：午前9時→9:00、午後9時→21:00）</p>
+        <div class="date-input-row">
+          <input class="input date-part-s" type="text" id="beforeHour" placeholder="9" inputmode="numeric" pattern="[0-9]*" maxlength="2" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+          <span class="date-unit">:</span>
+          <input class="input date-part-s" type="text" id="beforeMinute" placeholder="00" inputmode="numeric" pattern="[0-9]*" maxlength="2" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+        </div>
+      </div>
+      <div class="field" id="beforeDateField" style="display:none">
+        <label class="label">修正前の勤務日</label>
+        <div class="date-input-row">
+          <input class="input date-part-y" type="text" id="beforeYear" placeholder="2026" inputmode="numeric" pattern="[0-9]*" maxlength="4" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+          <span class="date-unit">年</span>
+          <input class="input date-part-s" type="text" id="beforeMonth" placeholder="5" inputmode="numeric" pattern="[0-9]*" maxlength="2" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+          <span class="date-unit">月</span>
+          <input class="input date-part-s" type="text" id="beforeDay" placeholder="1" inputmode="numeric" pattern="[0-9]*" maxlength="2" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+          <span class="date-unit">日</span>
+        </div>
+      </div>
+ 
+      <!-- 修正後 -->
+      <div class="field" id="afterTimeField">
         <label class="label">修正後の時間</label>
-        <input class="input" type="text" id="correctionTime" placeholder="例：09:00">
+        <p class="hint-text">24時間表記でご入力ください（例：午前9時→9:00、午後9時→21:00）</p>
+        <div class="date-input-row">
+          <input class="input date-part-s" type="text" id="afterHour" placeholder="9" inputmode="numeric" pattern="[0-9]*" maxlength="2" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+          <span class="date-unit">:</span>
+          <input class="input date-part-s" type="text" id="afterMinute" placeholder="00" inputmode="numeric" pattern="[0-9]*" maxlength="2" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+        </div>
       </div>
-      <div class="field" id="dateField" style="display:none">
+      <div class="field" id="afterDateField" style="display:none">
         <label class="label">修正後の勤務日</label>
-        <input class="input" type="text" id="correctionDate" placeholder="例：2026/06/12">
+        <div class="date-input-row">
+          <input class="input date-part-y" type="text" id="afterYear" placeholder="2026" inputmode="numeric" pattern="[0-9]*" maxlength="4" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+          <span class="date-unit">年</span>
+          <input class="input date-part-s" type="text" id="afterMonth" placeholder="6" inputmode="numeric" pattern="[0-9]*" maxlength="2" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+          <span class="date-unit">月</span>
+          <input class="input date-part-s" type="text" id="afterDay" placeholder="12" inputmode="numeric" pattern="[0-9]*" maxlength="2" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+          <span class="date-unit">日</span>
+        </div>
       </div>
-      <div class="field">
-        <label class="label">修正前の時間・日付</label>
-        <input class="input" type="text" id="beforeValue" placeholder="例：9:00 または 2026/05/01">
-      </div>
+ 
       <div class="field">
         <label class="label">理由</label>
         <textarea class="textarea" id="reason" rows="3" placeholder="例：打刻忘れのため"></textarea>
@@ -163,8 +210,11 @@ function selectType(type, btn) {
   selectedType = type;
   document.querySelectorAll('.tmpl-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  document.getElementById('timeField').style.display = type === '勤務日' ? 'none' : 'block';
-  document.getElementById('dateField').style.display = type === '勤務日' ? 'block' : 'none';
+  const isDate = type === '勤務日';
+  document.getElementById('beforeTimeField').style.display = isDate ? 'none' : 'block';
+  document.getElementById('beforeDateField').style.display = isDate ? 'block' : 'none';
+  document.getElementById('afterTimeField').style.display  = isDate ? 'none' : 'block';
+  document.getElementById('afterDateField').style.display  = isDate ? 'block' : 'none';
 }
  
 window.onload = function() {
@@ -210,19 +260,46 @@ function showMain(name) {
   document.getElementById('displayName').textContent = name + ' さん';
 }
  
-async function sendCorrection() {
-  const userName    = document.getElementById('userName').value.trim();
-  const workDate    = document.getElementById('workDate').value.trim();
-  const beforeValue = document.getElementById('beforeValue').value.trim();
-  const reason      = document.getElementById('reason').value.trim();
-  const afterValue  = selectedType === '勤務日'
-    ? document.getElementById('correctionDate').value.trim()
-    : document.getElementById('correctionTime').value.trim();
+function pad2(v) { return String(v).padStart(2, '0'); }
  
-  if (!workDate)    { alert('勤務日を入力してください'); return; }
-  if (!afterValue)  { alert('修正後の時間・日付を入力してください'); return; }
-  if (!beforeValue) { alert('修正前の時間・日付を入力してください'); return; }
-  if (!reason)      { alert('理由を入力してください'); return; }
+async function sendCorrection() {
+  const userName = document.getElementById('userName').value.trim();
+ 
+  const wy = document.getElementById('workYear').value.trim();
+  const wm = document.getElementById('workMonth').value.trim();
+  const wd = document.getElementById('workDay').value.trim();
+  const workDate = (wy && wm && wd) ? `${wy}/${pad2(wm)}/${pad2(wd)}` : '';
+ 
+  const reason     = document.getElementById('reason').value.trim();
+  const isDateType = selectedType === '勤務日';
+ 
+  let beforeValue = '';
+  let afterValue  = '';
+ 
+  if (isDateType) {
+    const by = document.getElementById('beforeYear').value.trim();
+    const bm = document.getElementById('beforeMonth').value.trim();
+    const bd = document.getElementById('beforeDay').value.trim();
+    beforeValue = (by && bm && bd) ? `${by}/${pad2(bm)}/${pad2(bd)}` : '';
+ 
+    const ay = document.getElementById('afterYear').value.trim();
+    const am = document.getElementById('afterMonth').value.trim();
+    const ad = document.getElementById('afterDay').value.trim();
+    afterValue = (ay && am && ad) ? `${ay}/${pad2(am)}/${pad2(ad)}` : '';
+  } else {
+    const bh   = document.getElementById('beforeHour').value.trim();
+    const bmin = document.getElementById('beforeMinute').value.trim();
+    beforeValue = (bh !== '' && bmin !== '') ? `${bh}:${pad2(bmin)}` : '';
+ 
+    const ah   = document.getElementById('afterHour').value.trim();
+    const amin = document.getElementById('afterMinute').value.trim();
+    afterValue = (ah !== '' && amin !== '') ? `${ah}:${pad2(amin)}` : '';
+  }
+ 
+  if (!workDate)    { alert('勤務日（西暦・月・日）を入力してください'); return; }
+  if (!beforeValue) { alert(isDateType ? '修正前の勤務日を入力してください' : '修正前の時間を入力してください'); return; }
+  if (!afterValue)  { alert(isDateType ? '修正後の勤務日を入力してください' : '修正後の時間を入力してください'); return; }
+  if (!reason)       { alert('理由を入力してください'); return; }
  
   const btn = document.querySelector('button.is-warning');
   btn.disabled = true; btn.innerHTML = '<strong>送信中...</strong>';
@@ -231,8 +308,10 @@ async function sendCorrection() {
     if (res.ok) {
       alert('申請が完了しました！\n管理者の承認後に修正されます。');
       document.getElementById('reason').value = '';
-      document.getElementById('beforeValue').value = '';
-      document.getElementById('workDate').value = '';
+      ['workYear','workMonth','workDay','beforeYear','beforeMonth','beforeDay','afterYear','afterMonth','afterDay','beforeHour','beforeMinute','afterHour','afterMinute'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
     } else throw new Error('サーバーエラー: '+res.status);
   } catch(err) { alert('エラー: '+err); }
   finally { btn.disabled=false; btn.innerHTML='<strong>この内容で申請する</strong>'; }
@@ -240,3 +319,4 @@ async function sendCorrection() {
 </script>
 </body>
 </html>
+ 
