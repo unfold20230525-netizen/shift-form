@@ -93,6 +93,12 @@
     .button.is-warning:hover { background: var(--navy-hover); transform: translateY(-1px); box-shadow: 0 4px 10px rgba(22,58,95,0.14); }
     .button.is-warning:active { transform: translateY(0) scale(0.99); box-shadow: none; }
     .button.is-warning[disabled] { background: var(--disabled-bg); color: var(--disabled-text); }
+ 
+    /* 数字のみの日付入力（西暦・月・日） */
+    .date-input-row { display: flex; align-items: center; gap: 6px; }
+    .date-part-y { flex: 1.5; min-width: 0; text-align: center; padding-left: 6px; padding-right: 6px; }
+    .date-part-s { flex: 1; min-width: 0; text-align: center; padding-left: 6px; padding-right: 6px; }
+    .date-unit { font-size: 13px; color: var(--gray-700); flex-shrink: 0; }
   </style>
 </head>
 <body>
@@ -129,7 +135,14 @@
       </div>
       <div class="field">
         <label class="label">申請日</label>
-        <input class="input" type="text" id="applyDate" placeholder="例：2026/06/11">
+        <div class="date-input-row">
+          <input class="input date-part-y" type="text" id="applyYear" placeholder="2026" inputmode="numeric" pattern="[0-9]*" maxlength="4" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+          <span class="date-unit">年</span>
+          <input class="input date-part-s" type="text" id="applyMonth" placeholder="6" inputmode="numeric" pattern="[0-9]*" maxlength="2" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+          <span class="date-unit">月</span>
+          <input class="input date-part-s" type="text" id="applyDay" placeholder="11" inputmode="numeric" pattern="[0-9]*" maxlength="2" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+          <span class="date-unit">日</span>
+        </div>
       </div>
       <div class="field">
         <label class="label">種類</label>
@@ -233,13 +246,22 @@ function updateBalanceBox() {
   }
 }
  
+// 西暦・月・日の入力欄から "YYYY/MM/DD" 形式の文字列を組み立てる
+function getApplyDateStr() {
+  const y = document.getElementById('applyYear').value.trim();
+  const m = document.getElementById('applyMonth').value.trim();
+  const d = document.getElementById('applyDay').value.trim();
+  if (!y || !m || !d) return '';
+  return `${y}/${m.padStart(2,'0')}/${d.padStart(2,'0')}`;
+}
+ 
 async function sendKyuka() {
   const userName  = document.getElementById('userName').value.trim();
-  const applyDate = document.getElementById('applyDate').value.trim();
+  const applyDate = getApplyDateStr();
   const reason    = document.getElementById('reason').value.trim();
   const required  = selectedKind === '全休' ? 1 : 0.5;
  
-  if (!applyDate) { alert('申請日を入力してください'); return; }
+  if (!applyDate) { alert('申請日（西暦・月・日）を入力してください'); return; }
   if (!reason)    { alert('理由を入力してください'); return; }
   if (currentBalance < required) {
     alert(`⚠️ 有給残日数が不足しています。\n現在の残日数：${currentBalance}日\n申請に必要な日数：${required}日`);
@@ -253,7 +275,9 @@ async function sendKyuka() {
     if (res.ok) {
       alert('申請が完了しました！\n名前：'+userName+'\n日付：'+applyDate+'\n種類：'+selectedKind);
       document.getElementById('reason').value = '';
-      document.getElementById('applyDate').value = '';
+      document.getElementById('applyYear').value = '';
+      document.getElementById('applyMonth').value = '';
+      document.getElementById('applyDay').value = '';
       currentBalance -= required;
       updateBalanceBox();
     } else throw new Error('サーバーエラー: '+res.status);
@@ -265,3 +289,4 @@ async function sendKyuka() {
 </script>
 </body>
 </html>
+ 
