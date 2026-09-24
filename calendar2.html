@@ -29,9 +29,9 @@
       background: var(--beige); color: var(--text-body); padding: 20px 16px 40px; -webkit-font-smoothing: antialiased;
     }
     @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
- 
+
     .wrap { max-width: 680px; margin: 0 auto; animation: fadeIn .3s ease-out; }
- 
+
     .auth-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
     .auth-card {
       background: var(--white); border-radius: var(--radius-lg); padding: 2.5rem 2rem; width: 100%;
@@ -54,19 +54,19 @@
     }
     .button.is-info:hover { background: var(--navy-hover); transform: translateY(-1px); box-shadow: 0 4px 10px rgba(22,58,95,0.14); }
     .button.is-info:active { background: var(--navy-active); transform: translateY(0) scale(0.99); box-shadow: none; }
- 
+
     .user-info { display: flex; align-items: center; justify-content: flex-end; gap: 10px; font-size: 13px; color: var(--gray-700); margin-bottom: 10px; }
     .logout-btn {
       font-size: 12px; color: var(--navy); background: var(--white); border: 1px solid var(--gray-300);
       border-radius: 6px; padding: 4px 10px; cursor: pointer; transition: background-color .15s ease;
     }
     .logout-btn:hover { background: var(--sky-bg); border-color: var(--sky); }
- 
+
     .page-title { text-align: center; margin-bottom: 20px; }
     .page-title .brand-tag { margin-bottom: 4px; }
     .page-title h2 { color: var(--navy); font-weight: 900; font-size: 1.3rem; }
     .title-rule { width: 40px; height: 3px; background: var(--sky); border-radius: 2px; margin: 10px auto 0; }
- 
+
     .view-toggle { display: flex; gap: 8px; margin-bottom: 1.2rem; justify-content: center; }
     .view-btn {
       border: 1px solid var(--navy); background: var(--white); color: var(--navy); border-radius: var(--radius-sm);
@@ -75,14 +75,14 @@
     .view-btn:hover { background: var(--sky-bg); transform: translateY(-1px); }
     .view-btn:active { transform: translateY(0) scale(0.98); }
     .view-btn.active { background: var(--navy); color: white; border-color: var(--navy); }
- 
+
     .legend {
       display: flex; gap: 14px; margin-bottom: 1.2rem; flex-wrap: wrap; justify-content: center;
       background: var(--white); border-radius: var(--radius-md); padding: 10px 14px; box-shadow: var(--shadow-card);
     }
     .legend-item { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--gray-700); }
     .legend-dot { width: 10px; height: 10px; border-radius: 3px; }
- 
+
     /* 一括確認ボタン */
     .bulk-confirm-wrap { margin-bottom: 1.2rem; text-align: center; }
     .bulk-confirm-btn {
@@ -94,7 +94,7 @@
     .bulk-confirm-btn:hover { background: #578F6F; transform: translateY(-1px); }
     .bulk-confirm-btn:active { background: #3F7358; transform: translateY(0) scale(0.99); }
     .bulk-confirm-btn:disabled { background: var(--disabled-bg); color: var(--disabled-text); }
- 
+
     .cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
     .cal-title { font-size: 16px; font-weight: 700; color: var(--navy); }
     .nav-btn {
@@ -103,7 +103,7 @@
     }
     .nav-btn:hover { background: var(--sky-dark); transform: translateY(-1px); }
     .nav-btn:active { transform: translateY(0) scale(0.95); }
- 
+
     .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
     .cal-dow { text-align: center; font-size: 11px; color: var(--gray-700); padding: 4px 0; font-weight: 700; }
     .cal-dow.sun { color: #B3453D; }
@@ -118,20 +118,21 @@
     .cal-date.sat { color: var(--sky-dark); }
     .shift-badge { font-size: 11px; font-weight: 700; border-radius: 5px; padding: 3px 4px; display: block; text-align: center; margin-bottom: 2px; }
     .status-badge { font-size: 9px; border-radius: 4px; padding: 1px 3px; display: block; text-align: center; }
- 
+
     /* シフト色：時間帯ごとに色分け（元のデザインの配色ルールを、より明るいトーンで維持） */
     .s-hayaban { background: var(--sky-bg); color: var(--navy); }
     .s-nakaban { background: #E7F8ED; color: #1E8E4F; }
     .s-ossoban { background: #FCF0DC; color: #9A6B00; }
     .s-yasumi  { background: var(--white); color: var(--gray-700); border: 1px solid var(--gray-200); }
     .s-custom  { background: #F1E9FB; color: #6B3FA0; }
- 
+    .s-revised { background: var(--info-bg); color: var(--info-text); }
+
     /* ステータス色 */
     .st-pending  { background: var(--amber-bg); color: var(--amber-text); }
     .st-confirm  { background: var(--success-bg); color: var(--success-text); }
     .st-cancel   { background: var(--error-bg); color: var(--error-text); }
     .st-revised  { background: var(--info-bg); color: var(--info-text); }
- 
+
     .week-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
     .day-card { border: 1px solid var(--gray-200); border-radius: var(--radius-sm); padding: 10px 6px; background: var(--white); box-shadow: 0 1px 4px rgba(22,58,95,0.05); min-height: 104px; transition: border-color .15s ease, background-color .15s ease, box-shadow .15s ease; }
     .day-card.today { border: 2px solid var(--navy); }
@@ -147,7 +148,7 @@
     .shift-block { border-radius: 5px; padding: 4px; font-size: 12px; font-weight: 700; text-align: center; }
     .no-shift { font-size: 11px; color: var(--gray-500); text-align: center; margin-top: 6px; }
     .loading { text-align: center; padding: 2rem; color: var(--gray-500); }
- 
+
     /* 詳細オーバーレイ */
     .detail-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(22,50,79,0.45); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
     .detail-card { background: var(--white); border-radius: var(--radius-lg); padding: 1.6rem; width: 320px; max-width: 100%; box-shadow: var(--shadow-card); animation: fadeIn .2s ease-out; }
@@ -159,7 +160,7 @@
     .detail-label { font-size: 13px; color: var(--gray-700); width: 80px; flex-shrink: 0; }
     .detail-value { font-size: 14px; font-weight: 700; color: var(--text-main); }
     .detail-badge { font-size: 13px; font-weight: 700; border-radius: 6px; padding: 4px 10px; }
- 
+
     /* 了解ボタン */
     .confirm-btn {
       width: 100%; padding: 13px; font-size: 15px; font-weight: 700; border-radius: var(--radius-sm); border: none;
@@ -170,7 +171,7 @@
     .confirm-btn:active { background: #3F7358; transform: translateY(0) scale(0.99); box-shadow: none; }
     .confirm-btn:disabled { background: var(--disabled-bg); color: var(--disabled-text); }
     .confirmed-mark { text-align: center; padding: 10px; font-size: 14px; color: var(--success-text); font-weight: 700; background: var(--success-bg); border-radius: 8px; margin-top: 10px; }
- 
+
     /* キャンセルボタン（一括確認ポップアップ用） */
     .cancel-btn {
       width: 100%; padding: 13px; font-size: 15px; font-weight: 700; border-radius: var(--radius-sm);
@@ -181,7 +182,7 @@
     .bulk-warning { font-size: 13px; color: var(--error-text); font-weight: 700; margin-top: 6px; }
     .btn-row { display: flex; gap: 8px; margin-top: 14px; }
     .btn-row > * { flex: 1; margin-top: 0; }
- 
+
     /* ===== モバイル対応（Android / iPhone） ===== */
     @media (max-width: 480px) {
       body { padding: 14px 8px 30px; }
@@ -254,7 +255,7 @@
       <div class="legend">
         <div class="legend-item"><div class="legend-dot" style="background:#FBF1E3;border:1px solid #8A5A1E"></div>申請中</div>
         <div class="legend-item"><div class="legend-dot" style="background:#E7F2EA;border:1px solid #2F6B46"></div>確定</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#EAF4FA;border:1px solid #1B6C93"></div>時間修正確定</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#EAF4FA;border:1px solid #1B6C93"></div>時間変更確定</div>
         <div class="legend-item"><div class="legend-dot" style="background:#FBEAEA;border:1px solid #B3261E"></div>キャンセル</div>
       </div>
       <!-- 一括確認ボタン（未確認のシフトがある場合のみ表示） -->
@@ -333,7 +334,7 @@
       0: { label: '申請中',     cls: 'st-pending' },
       1: { label: '確定',       cls: 'st-confirm' },
       2: { label: 'キャンセル', cls: 'st-cancel'  },
-      3: { label: '時間修正確定', cls: 'st-revised' }
+      3: { label: '時間変更確定', cls: 'st-revised' }
     };
     const DOWS   = ['日','月','火','水','木','金','土'];
     const MONTHS = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
@@ -449,9 +450,22 @@
       view === 'month' ? renderMonth() : renderWeek();
       updateBulkConfirmArea();
     }
+    // このシフトが「修正申請」由来のもの（出勤・退勤の修正が反映された日）かどうかを判定
+    function isCorrectionShift(data) {
+      return !!(data && data.shift && data.shift.indexOf('修正申請') === 0);
+    }
+    // ステータスバッジ表示用の情報を取得
+    // 修正申請由来で「確定」（status===1）の日は、通常の確定（有給など）と区別できるよう
+    // 「時間変更確定」（青）として表示する
+    function getStatusDisplay(data) {
+      if (data.status === 1 && isCorrectionShift(data)) {
+        return { label: '時間変更確定', cls: 'st-revised' };
+      }
+      return STATUS_INFO[data.status] || STATUS_INFO[0];
+    }
     // ステータスに応じたバッジHTMLを返す
-    function getStatusBadgeHtml(status, cls) {
-      const info = STATUS_INFO[status] || STATUS_INFO[0];
+    function getStatusBadgeHtml(data) {
+      const info = getStatusDisplay(data);
       return `<span class="status-badge ${info.cls}">${info.label}</span>`;
     }
     // シフト表示用のラベルを取得（修正時間があれば修正後を優先）
@@ -461,6 +475,7 @@
     }
     // シフトの色クラスを取得
     function getShiftCls(shiftLabel) {
+      if (shiftLabel.indexOf('修正申請') === 0) return 's-revised';
       if (shiftLabel.includes('09:00') || shiftLabel.includes('早番')) return 's-hayaban';
       if (shiftLabel.includes('12:00') || shiftLabel.includes('中番')) return 's-nakaban';
       if (shiftLabel.includes('13:00') || shiftLabel.includes('15:00') || shiftLabel.includes('遅番')) return 's-ossoban';
@@ -479,7 +494,7 @@
       document.getElementById('detailShift').innerHTML =
         `<span class="detail-badge ${shiftCls}">${shiftLabel}</span>` +
         (d.status === 3 && d.revisedTime ? `<div style="font-size:11px;color:#888;margin-top:4px">申請時：${d.shift}</div>` : '');
-      const statusInfo = STATUS_INFO[d.status] || STATUS_INFO[0];
+      const statusInfo = getStatusDisplay(d);
       document.getElementById('detailStatus').innerHTML =
         `<span class="detail-badge ${statusInfo.cls}">${statusInfo.label}</span>`;
       document.getElementById('detailName').textContent = currentName;
@@ -617,7 +632,7 @@
         if (data) {
           const shiftLabel = getShiftLabel(data);
           const shiftCls   = getShiftCls(shiftLabel);
-          const statusInfo = STATUS_INFO[data.status] || STATUS_INFO[0];
+          const statusInfo = getStatusDisplay(data);
           html += `<span class="shift-badge ${shiftCls}">${shiftLabel}</span>`;
           html += `<span class="status-badge ${statusInfo.cls}">${statusInfo.label}</span>`;
           // 確認済みマーク
@@ -664,7 +679,7 @@
         if (data) {
           const shiftLabel = getShiftLabel(data);
           const shiftCls   = getShiftCls(shiftLabel);
-          const statusInfo = STATUS_INFO[data.status] || STATUS_INFO[0];
+          const statusInfo = getStatusDisplay(data);
           html += `<div class="shift-block ${shiftCls}">${shiftLabel}</div>`;
           html += `<span class="status-badge ${statusInfo.cls}" style="margin-top:3px">${statusInfo.label}</span>`;
           if ((data.status === 1 || data.status === 3) && data.staffConfirm === 1) {
@@ -680,4 +695,3 @@
   </script>
 </body>
 </html>
- 
